@@ -5,15 +5,15 @@
 **Audit branch:** `feature/mfa-foundation-audit-v1`  
 **Base branch:** `main`  
 **Audit date:** 2026-10-31  
-**Status:** Initial remote repository audit; implementation not yet started
+**Status:** Initial audit completed; foundation scaffold committed; runtime validation pending
 
 ## 1. Executive summary
 
-The repository exists, is private, and is accessible to the connected GitHub account with push/admin permissions. The default branch is `main`. The requested feature branch `feature/mfa-foundation-audit-v1` already exists.
+The private repository and working branch were confirmed. The initial inspection found a README-only repository with no application framework, dependency manifest, database schema, authentication or deployment configuration. The audit and implementation plan were committed before application code was added.
 
-The repository metadata reports a size of 0 KB. The README is the only file confirmed through the available file-content inspection. The README contains only a one-line description of Money Flow Agency. Common application manifests and configuration files were not found at the repository root.
+Following owner approval, a Next.js App Router + TypeScript application foundation and a dedicated Supabase SSR integration were added on the feature branch. The initial public website, agent application flow, public directory, protected portal shells and first database migration are now present.
 
-**Conclusion:** No existing application stack or working application code was identified in the inspected repository. The project should be treated as an unimplemented foundation, while preserving the existing README and all branch history.
+**Important:** The Supabase project has not been provisioned or connected, dependencies have not been installed in a local runtime, and no build/test result has yet been verified. The repository is not production-ready.
 
 ## 2. Repository and branch
 
@@ -25,80 +25,62 @@ The repository metadata reports a size of 0 KB. The README is the only file conf
 | Working branch | `feature/mfa-foundation-audit-v1` |
 | Working branch exists | Yes |
 | Connected account permission | Admin / Push |
-| Repository metadata size | 0 KB |
+| Initial repository size | 0 KB |
 | Production deployment | Not performed |
+| Merge to main | Not performed |
 
-## 3. Files inspected and findings
+## 3. Initial audit findings
 
-### Confirmed file
-- `README.md` — contains the project name and a short description of an agent-based money-flow service.
+The initial root inspection confirmed README only. These paths were not found before scaffolding: package manifests/lockfiles, Next/Vite config, TypeScript config, Supabase config and .gitignore. The connected GitHub interface did not expose a recursive Git tree listing during the initial audit, so the audit does not claim a recursive enumeration of every nested path.
 
-### Root paths checked but not found
-- `package.json`
-- `pnpm-lock.yaml`
-- `yarn.lock`
-- `package-lock.json`
-- `vite.config.ts`
-- `next.config.js`
-- `next.config.ts`
-- `tsconfig.json`
-- `supabase/config.toml`
-- `.gitignore`
+## 4. Foundation files now added
 
-Repository-scoped code searches for package, Supabase, Next.js and common application entry-point terms returned no indexed matches.
+- Next.js 16 App Router + TypeScript project manifest/configuration.
+- Supabase browser/server clients using cookie-based SSR.
+- Next.js 16 `proxy.ts` session-refresh integration.
+- Environment variable example with placeholders only.
+- Responsive public site: Home, About, Services, Agents, Become an Agent, Partners, Advertising, Help, Contact, Privacy and Terms.
+- Agent application sign-up flow with email confirmation callback.
+- Agent and Super Admin portal foundations.
+- Supabase migration: profiles, agent profiles, verification events, business partners, support tickets and audit logs.
+- Row Level Security policies and limited column grants to prevent users from self-assigning privileged roles or transaction-enabled status.
+- Updated README with setup and limitations.
 
-**Inspection limitation:** The connected GitHub interface available for this audit exposed file fetching and code search but not a recursive Git tree listing. Therefore this report records every confirmed file and every checked root path; it does not claim that every possible nested path was enumerated. The repository's reported 0 KB size and missing root manifests strongly indicate that no application foundation is present.
+## 5. Security and product boundaries
 
-## 4. Existing architecture assessment
+1. MFA remains independent; CFG is a partner, not the platform owner.
+2. No MFA-to-CFG database, wallet or ledger connection exists.
+3. Public directory reads only profiles with `status = verified`.
+4. Agent sign-up creates a pending application; it does not grant transaction permissions.
+5. Agent users cannot update role, verification status or `transaction_enabled` through the granted columns.
+6. Super Admin portal requires an authenticated Super Admin and AAL2 MFA. Country/Regional Manager access is intentionally disabled until scoped policies exist.
+7. Verification evidence is not public.
+8. Real deposits, withdrawals, transfers, customer wallets, custody, crypto exchange, payment execution and guarantee collection remain disabled.
+9. No service-role secret is exposed in frontend variables or committed.
+10. No production deployment or merge was performed.
 
-| Area | Audit result |
-|---|---|
-| Frontend framework | Not detected |
-| Backend/API | Not detected |
-| Database schema/migrations | Not detected |
-| Authentication | Not detected |
-| Role-based access control | Not detected |
-| Agent registration | Not detected |
-| Agent directory/profile | Not detected |
-| Admin portal | Not detected |
-| Agent portal | Not detected |
-| Partner API | Not detected |
-| CI/test configuration | Not detected |
-| Environment variable documentation | Not detected |
+## 6. Current limitations / risks
 
-No framework or dependencies can safely be retained because none were identified.
+- A dedicated MFA Supabase project must be created and configured by the owner.
+- The migration has been committed but has not yet been applied to a live MFA database.
+- Email provider/confirmation settings must be configured in Supabase.
+- Logo/profile-image upload and storage bucket policies are pending.
+- Admin verification actions require a controlled server-side workflow and audit logging.
+- Country and regional managers require explicit data-scope policies before activation.
+- Directory search filters, partner API, commission engine, advertising workflow, support case management and guarantee sandbox remain incomplete.
+- Administrator MFA enrollment UI and account provisioning procedure remain incomplete.
+- The SQL migration, dependency installation, typecheck, lint and production build still require execution and review.
+- Legal/privacy/compliance pages are preliminary and require qualified review before production.
 
-## 5. Security and operational findings
+## 7. Immutable project boundaries
 
-1. No authentication or authorization implementation was found.
-2. No database access policies or tenant/partner separation could be verified.
-3. No API credential handling, rate limiting, audit logging or input validation could be verified.
-4. No migration, backup or restore process could be verified.
-5. No payment execution, customer wallet, custody, real deposit/withdrawal or escrow functionality was found in the inspected files.
-6. The platform must not accept real guarantee deposits or customer funds during foundation development.
-7. Partner integrations must not have write access to CFG/CFGG balances, wallet or ledger.
-8. Secrets must be kept in deployment environment settings and never committed to Git.
+- Do not modify CFG, Jakay Group, Jakay Pesa, Maharoos Mini or any other repository/project.
+- Do not connect to CFG/CFGG ledger or wallet.
+- Do not invent unapproved fees, commissions, advertising prices or transaction limits.
+- V1.1 remains additive to V1.
+- Work only on `feature/mfa-foundation-audit-v1`; no direct commits to `main`.
+- No production deployment or merge without owner approval.
 
-## 6. Immutable project boundaries
+## 8. Audit conclusion
 
-- MFA remains an independent platform with its own repository, database, authentication, financial records and deployment.
-- CFG is one partner/customer, not the owner of MFA.
-- Do not modify CFG, Jakay Group, Jakay Pesa, Maharoos Mini or any other project.
-- Never connect MFA directly to the CFG/CFGG ledger or wallet.
-- Do not deploy to production or merge into `main`.
-- Do not invent final fees, commission percentages, advertising prices or transaction limits.
-- V1.1 is additive and must not delete, weaken or rewrite V1.
-
-## 7. Recommended next actions
-
-1. Keep all work on `feature/mfa-foundation-audit-v1`.
-2. Select and document a maintainable application stack before creating application files.
-3. Build the public website and agent onboarding/directory foundation.
-4. Add secure authentication, role-based permissions and database migrations before exposing protected portal actions.
-5. Keep payment execution, customer wallets, custody, crypto exchange and real escrow/guarantee collection disabled.
-6. Add automated tests for authorization, agent verification, partner separation and prohibited financial operations.
-7. Review the feature branch and preview in a non-production environment; do not merge or deploy to production without owner approval.
-
-## 8. Audit status
-
-The initial repository audit is documented. No existing application files were replaced. No production systems or other project repositories were modified.
+The repository baseline and initial foundation are documented. Public-site and onboarding code has been committed, but runtime validation and live Supabase setup remain outstanding. This is a development foundation, not an operational financial platform.
