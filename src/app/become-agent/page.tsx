@@ -1,0 +1,2 @@
+import { AgentApplicationForm } from "@/components/agent-application-form";
+export default function BecomeAgentPage(){return <><section className="page-hero"><div className="container"><div className="section-kicker">JOIN THE NETWORK</div><h1>Apply to become<br/><em>an MFA agent.</em></h1><p>Create your account and submit your agent profile for review. You can apply as an individual or a business.</p></div></section><section className="content-section"><div className="container form-shell"><AgentApplicationForm/></div></section></>}
