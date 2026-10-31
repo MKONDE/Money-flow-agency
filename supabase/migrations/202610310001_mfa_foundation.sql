@@ -210,12 +210,17 @@ grant select on public.agent_profiles to anon, authenticated;
 revoke update on public.agent_profiles from authenticated;
 grant update (
   brand_name, description, region, city, service_address, phone, website,
-  languages, services, payment_networks, working_hours, logo_url,
-  profile_image_url, is_online
+  languages, working_hours, logo_url, profile_image_url, is_online
 ) on public.agent_profiles to authenticated;
 drop policy if exists "agent_profiles_owner_update" on public.agent_profiles;
 create policy "agent_profiles_owner_update" on public.agent_profiles
 for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- Explicit table privileges complement RLS; policies remain the row-level boundary.
+grant select, insert on public.agent_verification_events to authenticated;
+grant select, insert, update on public.business_partners to authenticated;
+grant select, insert, update on public.support_tickets to authenticated;
+grant select on public.audit_logs to authenticated;
 
 -- Verification evidence and audit logs are never public.
 drop policy if exists "verification_admin_read" on public.agent_verification_events;
