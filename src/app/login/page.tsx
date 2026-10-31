@@ -1,0 +1,3 @@
+import Link from "next/link";
+import { LoginForm } from "./login-form";
+export default function LoginPage(){return <><section className="page-hero"><div className="container"><div className="section-kicker">SECURE ACCESS</div><h1>Welcome<br/><em>back.</em></h1><p>Sign in to your MFA account to manage your agent profile and approved services.</p></div></section><section className="content-section"><div className="container form-shell"><LoginForm/><p className="form-note" style={{marginTop:18}}>New to the network? <Link className="text-link" href="/become-agent">Apply as an agent →</Link></p></div></section></>}
