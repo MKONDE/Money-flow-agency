@@ -354,6 +354,41 @@ revoke all on function private.mfa_record_dispute_update() from public,anon,auth
 create trigger mfa_dispute_update_event after update on public.mfa_transaction_disputes
 for each row execute function private.mfa_record_dispute_update();
 
+create unique index if not exists mfa_disputes_one_per_transaction_idx
+  on public.mfa_transaction_disputes(transaction_id);
+
+create or replace function private.mfa_guard_dispute_update()
+returns trigger language plpgsql security definer set search_path='' as $
+declare v_admin boolean := private.current_mfa_role()='super_admin' and (select auth.jwt()->>'aal')='aal2';
+begin
+  if not v_admin then raise exception 'AAL2 Super Admin permission required to resolve disputes' using errcode='42501'; end if;
+  if new.id is distinct from old.id or new.transaction_id is distinct from old.transaction_id
+    or new.opened_by is distinct from old.opened_by
+    or new.reason_code is distinct from old.reason_code
+    or new.description is distinct from old.description
+    or new.created_at is distinct from old.created_at then
+    raise exception 'Dispute origin details are immutable' using errcode='42501';
+  end if;
+  if not (
+    (old.dispute_status='open' and new.dispute_status in ('under_review','resolved','rejected'))
+    or (old.dispute_status='under_review' and new.dispute_status in ('resolved','rejected'))
+  ) then
+    raise exception 'Invalid or terminal dispute status transition' using errcode='22023';
+  end if;
+  if new.dispute_status in ('resolved','rejected') and (new.resolved_by is distinct from auth.uid() or new.resolved_at is null) then
+    raise exception 'A final dispute decision requires reviewer identity and timestamp' using errcode='23514';
+  end if;
+  if new.dispute_status='under_review' and (new.resolved_by is not null or new.resolved_at is not null) then
+    raise exception 'Under-review disputes cannot have a final reviewer timestamp' using errcode='23514';
+  end if;
+  return new;
+end;
+$;
+revoke all on function private.mfa_guard_dispute_update() from public,anon,authenticated;
+create trigger mfa_dispute_update_guard before update on public.mfa_transaction_disputes
+for each row execute function private.mfa_guard_dispute_update();
+
+
 create or replace function private.mfa_guard_escrow_update()
 returns trigger language plpgsql security definer set search_path='' as $$
 declare v_admin boolean := private.current_mfa_role()='super_admin' and (select auth.jwt()->>'aal')='aal2';
