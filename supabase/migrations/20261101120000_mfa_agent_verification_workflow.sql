@@ -20,7 +20,7 @@ declare
   v_reason text := nullif(trim(coalesce(p_reason, '')), '');
   v_evidence text := nullif(trim(coalesce(p_evidence_reference, '')), '');
 begin
-  if v_actor is null or (select auth.jwt())->>'aal' <> 'aal2' then
+  if v_actor is null or coalesce((select auth.jwt())->>'aal', '') <> 'aal2' then
     raise exception 'AAL2 administrator session required' using errcode = '42501';
   end if;
   if private.current_mfa_role() is distinct from 'super_admin' then
