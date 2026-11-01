@@ -5,7 +5,7 @@
 **Audit branch:** `feature/mfa-foundation-audit-v1`  
 **Base branch:** `main`  
 **Audit date:** 2026-10-31  
-**Status:** Initial audit completed; foundation scaffold committed; runtime validation pending
+**Status:** Repository audit corrected; foundation and verification workflow committed; GitHub CI passed; live Supabase validation pending
 
 ## 1. Executive summary
 
@@ -83,4 +83,4 @@ The `main` branch root contained `README.md`, `app/`, `assets/`, `index.html`, `
 
 ## 8. Corrected branch inventory and review snapshot (2026-11-01)\n\n- Base `main`: small existing site/app structure; not empty.\n- Feature branch: Next.js 16 App Router + TypeScript, Supabase Auth/SSR, public pages, agent onboarding, verified-only directory, agent portal, Super Admin portal, global representation/offices, location profiles, demo request handling, and SQL migrations.\n- New in this review: `src/app/admin/AgentApplicationReview.tsx`, `src/app/admin/actions.ts`, and `supabase/migrations/20261101120000_mfa_agent_verification_workflow.sql`; Admin page wired to the new workflow.\n- CI workflow updated to avoid npm cache setup when no lockfile is committed.\n- The current working branch has an existing open PR #1 to `main`; it remains unmerged.\n- No production deployment was performed.\n\n## 9. Audit conclusion
 
-The repository baseline and initial foundation are documented. Public-site and onboarding code has been committed, but runtime validation and live Supabase setup remain outstanding. This is a development foundation, not an operational financial platform.
+The repository baseline, recursive branch inventory and implementation plan are documented. GitHub CI has passed dependency installation, typecheck, lint and production build. Live Supabase migration application, auth/email/MFA configuration, database permission tests, full browser QA and dependency vulnerability triage remain outstanding. This is a development foundation, not an operational financial platform.
