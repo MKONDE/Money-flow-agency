@@ -69,21 +69,20 @@ This is not a production security approval. The migrations have not been applied
 
 The connected project is named money-flow-agency, separate from CFG. No DDL or migration was applied during this review.
 
-The live migration history contains 12 entries, including these versions that are not currently represented by migration files in this repository:
+The live migration history contains 12 entries. Three operational migration versions are not represented by their original migration files in this repository:
 - 20261101033516 mfa_send_receive_requests_v1
 - 20261101033526 mfa_request_workflow_fk_indexes
 - 20261101033713 mfa_agent_request_status_rpc
-- 20261101102303 mfa_rls_policy_consolidation_global_presence_v1
-- 20261101102331 mfa_agent_profile_read_policy_consolidation_v1
+- 20261101102303 and 20261101102331 are represented by corresponding policy-consolidation migrations in this branch under 20261101103000 and 20261101104500; the version timestamps differ and must be reconciled.
 
-The live database also contains operational tables not fully represented by the checked-in migration history, including partner services, payment partners, agent service listings, partner confirmations, receipts, service disputes, service requests and service-request events. This is schema drift. Do not apply the complete repository migration folder blindly to the live database until the missing migration history has been reconciled.
+The live foundation migration timestamp also differs from the repository's base foundation file, and the repository's agent verification migration 20261101120000 is not recorded as applied in the live database. The live database also contains operational tables not fully represented by the checked-in migration history, including partner services, payment partners, agent service listings, partner confirmations, receipts, service disputes, service requests and service-request events. This is schema drift. Do not apply the complete repository migration folder blindly to the live database until the missing migration history has been reconciled.
 
 ### Existing Supabase Security Advisor findings
 
 1. Authenticated SECURITY DEFINER function: the live database reports public.agent_update_service_request(uuid,text,text) as executable by authenticated users while SECURITY DEFINER. The inspected function does verify a signed-in verified agent, assigned request, demo-only flag and allowed status transitions; the warning is not by itself proof of an exploit. The new migration 20261101134000_mfa_legacy_demo_request_security_hardening.sql changes it to SECURITY INVOKER and adds RLS/trigger enforcement, and revokes anon privileges. This fix is committed but not yet applied to the live database.
 2. Leaked password protection disabled: Supabase Auth currently reports this protection as disabled. Enable it in the MFA Supabase Auth password-security settings before production. This is a dashboard-level setting and is not changed by SQL migrations.
 
-The live database also had broad anon table grants on legacy demo service-request tables despite RLS being enabled. The new hardening migration revokes those grants; this has not yet been applied.
+The live database also had broad anon table grants on the legacy demo service_requests table despite RLS being enabled. The new hardening migration revokes those grants; this has not yet been applied.
 
 ## Remaining security gates
 
