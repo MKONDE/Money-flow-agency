@@ -59,7 +59,8 @@ The directory exposes verified profiles only. Verification evidence is not publi
 - The Supabase project has not been provisioned or connected by this repository change.
 - Logo/profile-image upload awaits a dedicated storage bucket and upload validation.
 - Admin review actions and role provisioning require a controlled server-side workflow.
-- Agent search filters, service requests, partner API, fee/commission engine, advertising approvals and guarantee workflows are not complete.
+- The bank-to-bank transfer page is a client-side demonstration only: it does not save requests, contact agents or banks, validate beneficiaries, or move money.
+- Persistent service requests, agent assignment, partner API, fee/commission engine, advertising approvals and guarantee workflows are not complete.
 - MFA enrollment UI, support case submission, backups/restore and full automated security tests remain to be completed.
 - Privacy, Terms, compliance and operational policies require owner and qualified legal review before production.
 
