@@ -51,7 +51,7 @@ export function AgentApplicationForm() {
       <div className="field full"><label>Services you provide</label><div className="check-grid">{serviceOptions.map(v=><label className="check-option" key={v}><input type="checkbox" name="services" value={v}/>{v}</label>)}</div></div>
       <div className="field full"><label>Payment networks you support (directory information only)</label><div className="check-grid">{networkOptions.map(v=><label className="check-option" key={v}><input type="checkbox" name="payment_networks" value={v}/>{v}</label>)}</div></div>
     </div>
-    <p className="form-note" style={{marginTop:18}}>Submitting an application does not make you a verified agent or authorize financial transactions. MFA will review the application. Logo and profile-image upload will be enabled in the agent portal after the storage bucket is configured.</p>
+    <p className="form-note" style={{marginTop:18}}>Submitting an application does not make you a verified agent or authorize financial transactions. MFA will review the application. You can add an HTTPS logo URL from your agent portal after signing in. Image-file upload requires a later Storage bucket setup.</p>
     {error&&<p className="form-error" role="alert">{error}</p>}{message&&<p className="form-success" role="status">{message}</p>}
     <button className="button form-submit" type="submit" disabled={busy}>{busy?"Submitting…":"Submit agent application"} <span>↗</span></button>
   </form>;
