@@ -8,10 +8,10 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| TypeScript typecheck | Pending | GitHub Actions for this branch |
-| ESLint | Pending | GitHub Actions for this branch |
-| Production build | Pending | GitHub Actions for this branch |
-| SQL safety grep checks | Pending | GitHub Actions workflow |
+| TypeScript typecheck | Passed | GitHub Actions run 41298355742, commit 8dcf615 |
+| ESLint | Passed | GitHub Actions run 41298355742, commit 8dcf615 |
+| Production build | Passed | GitHub Actions run 41298355742, commit 8dcf615 |
+| SQL safety grep checks | Passed | GitHub Actions run 41298355742, commit 8dcf615 |
 | Database schema smoke test | Not run | Requires the new migrations on an isolated MFA test database |
 | Browser/mobile end-to-end tests | Not run | Requires configured test Supabase users and browser QA |
 | RLS adversarial tests | Not run | Requires customer, agent, partner and AAL2 admin test identities |
@@ -35,4 +35,4 @@ The smoke test is a schema-presence check. It does not replace the role-based in
 
 ## Current result
 
-No migrations were applied to the connected live MFA database. No real payment, deposit, withdrawal, transfer, escrow, custody or payout was performed. The branch must not be treated as production-ready until the pending checks pass.
+Typecheck, lint, production build and SQL safety checks passed on commit 8dcf615. Later changes to SQL migrations and documentation are being checked by the latest branch workflow; the latest branch-head run has not yet completed. No migrations were applied to the connected live MFA database. No real payment, deposit, withdrawal, transfer, escrow, custody or payout was performed. The branch must not be treated as production-ready until staging database, RLS, concurrency, browser/mobile and recovery tests pass.
