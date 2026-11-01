@@ -26,7 +26,7 @@ begin
   if private.current_mfa_role() is distinct from 'super_admin' then
     raise exception 'Super Admin permission required' using errcode = '42501';
   end if;
-  if p_action not in ('approve', 'reject', 'request_information', 'suspend') then
+  if p_action is null or p_action not in ('approve', 'reject', 'request_information', 'suspend') then
     raise exception 'Unsupported agent review action' using errcode = '22023';
   end if;
   if p_action in ('reject', 'request_information', 'suspend') and v_reason is null then
