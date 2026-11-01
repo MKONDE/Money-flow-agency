@@ -93,7 +93,7 @@ The public website does not require a service-role key. Never expose a service-r
 - The branch migrations have not been applied to the live Supabase project. The live database has schema drift that must be reconciled first.
 - The SQL smoke-test script is committed but has not yet been executed against a migrated staging database.
 - Browser/end-to-end tests, adversarial RLS tests, concurrent limit tests and restore tests remain pending.
-- Logo/profile image uploads require a dedicated Storage bucket and explicit upload validation/policies.
+- Agent HTTPS logo URL editing and public display are implemented. Image-file uploads still require a dedicated Storage bucket and explicit upload validation/policies.
 - Partner API credentials, signed webhooks and provider integration are not implemented.
 - Real escrow provider support is not connected; no money may be held or released.
 - Capital tier values must be configured by the owner before assigning agents; no currency conversion is performed.
