@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdminWorkspace from "./AdminWorkspace";
+import AgentApplicationReview from "./AgentApplicationReview";
 import GlobalPresenceWorkspace from "./GlobalPresenceWorkspace";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +23,7 @@ export default async function AdminPortalPage() {
     </div></div></section>;
   }
 
-  const [{ count: pending }, { count: verified }, { count: suspended }, { data: requests, error: requestsError }, { data: agents, error: agentsError }, { data: representatives }, { data: offices }, { data: agentLocations }] = await Promise.all([
+  const [{ count: pending }, { count: verified }, { count: suspended }, { data: requests, error: requestsError }, { data: agents, error: agentsError }, { data: representatives }, { data: offices }, { data: agentLocations }, { data: applications, error: applicationsError }] = await Promise.all([
     supabase.from("agent_profiles").select("*", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("agent_profiles").select("*", { count: "exact", head: true }).eq("status", "verified"),
     supabase.from("agent_profiles").select("*", { count: "exact", head: true }).eq("status", "suspended"),
@@ -30,7 +31,8 @@ export default async function AdminPortalPage() {
     supabase.from("agent_profiles").select("id,brand_name,city,region,country_code,status").eq("status", "verified").order("brand_name").limit(200),
     supabase.from("country_representatives").select("id,country_code,display_name,title,public_city,public_phone,public_email,verification_status,status,show_publicly").order("created_at",{ascending:false}),
     supabase.from("country_offices").select("id,country_code,office_name,office_type,city,public_address,public_phone,verification_status,status,show_publicly").order("created_at",{ascending:false}),
-    supabase.from("agent_location_profiles").select("id,agent_id,country_code,region,district,city,ward,neighbourhood,service_address,location_type,service_areas,public_listing_consent,review_status").order("created_at",{ascending:false}).limit(200)
+    supabase.from("agent_location_profiles").select("id,agent_id,country_code,region,district,city,ward,neighbourhood,service_address,location_type,service_areas,public_listing_consent,review_status").order("created_at",{ascending:false}).limit(200),
+    supabase.from("agent_profiles").select("id,brand_name,agent_type,status,country_code,region,city,phone,public_email,description,created_at").eq("status","pending").order("created_at",{ascending:true}).limit(100)
   ]);
 
   return <section className="content-section"><div className="container">
@@ -41,6 +43,12 @@ export default async function AdminPortalPage() {
       {[[ "Pending applications", pending ?? 0 ], [ "Verified agents", verified ?? 0 ], [ "Suspended agents", suspended ?? 0 ]].map(([label, value]) =>
         <div className="portal-tile" key={String(label)}><strong>{label}</strong><span style={{ fontSize: 30, fontWeight: 800, color: "var(--ink)" }}>{value}</span></div>
       )}
+    </div>
+    <div className="content-card" style={{ marginTop: 22 }}>
+      <h2 style={{ fontSize: 24 }}>Agent application verification</h2>
+      <p className="form-note">Review pending applicants, record a decision reason and an internal evidence reference. Approval verifies the listing only; it never enables financial transactions.</p>
+      {applicationsError ? <p className="form-error">Applications could not be loaded. Check whether the MFA migrations have been applied.</p> :
+        <AgentApplicationReview applications={applications ?? []} />}
     </div>
     <div className="content-card" style={{ marginTop: 22 }}>
       <h2 style={{ fontSize: 24 }}>Customer service requests</h2>
@@ -55,7 +63,7 @@ export default async function AdminPortalPage() {
     </div>
     <div className="content-card" style={{ marginTop: 22 }}>
       <h2 style={{ fontSize: 24 }}>Administration controls</h2>
-      <p className="form-note">Agent application review, partner approvals, advertising approvals, fee and commission configuration, guarantees, support cases and full audit review remain separate upcoming modules. No real-money actions are enabled.</p>
+      <p className="form-note">Partner approvals, advertising approvals, fee and commission configuration, guarantees, support cases and full audit review remain separate upcoming modules. No real-money actions are enabled.</p>
     </div>
   </div></section>;
 }
