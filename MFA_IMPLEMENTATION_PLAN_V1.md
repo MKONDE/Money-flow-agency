@@ -25,7 +25,8 @@
 - [x] Search public verified directory by business name, country and city.
 - [x] Online/offline presence synced to public directory.
 - [x] Public phone/email shown only after explicit agent consent.
-- [ ] Agent logo/profile image upload via a dedicated validated Storage bucket.
+- [x] Agent HTTPS logo URL editing and public directory display.
+- [ ] Agent logo/profile image file upload via a dedicated validated Storage bucket.
 - [ ] Service/language/network filters beyond name/country/city.
 
 ### 2. Agent Verification and Trust
