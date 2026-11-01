@@ -1,86 +1,121 @@
-# MFA Repository Audit V1
+# MFA Repository Audit — Agent Trust, Capital & Commission Engine V1
 
-**Project:** Money Flow Agency (MFA)  
-**Repository:** https://github.com/MKONDE/Money-flow-agency  
-**Audit branch:** `feature/mfa-foundation-audit-v1`  
-**Base branch:** `main`  
-**Audit date:** 2026-10-31  
-**Status:** Repository audit corrected; foundation and verification workflow committed; GitHub CI passed; live Supabase validation pending
+**Repository:** MKONDE/Money-flow-agency  
+**Base branch:** main  
+**Module branch:** feature/agent-trust-capital-commission-v1  
+**Parent development branch:** feature/mfa-foundation-audit-v1  
+**Review date:** 2026-11-01
 
-## 1. Executive summary
+## Executive summary
 
-The private repository and working branch were confirmed. A later recursive inspection corrected the initial limited root-only assessment: `main` already contained a small Next.js-related app structure, `index.html`, `package.json`, `app/`, `assets/` and `public/`. The feature branch contains a substantially expanded Next.js 16 + TypeScript + Supabase implementation. The original README-only description was incomplete and must not be treated as an accurate description of the base branch.
+The repository already contained a Next.js 16 + TypeScript + Supabase foundation, agent registration, a verified-agent public directory, an agent portal, a Super Admin portal, global representation/location features and an initial demo service-request workflow.
 
-Following owner approval, a Next.js App Router + TypeScript application foundation and a dedicated Supabase SSR integration were added on the feature branch. The initial public website, agent application flow, public directory, protected portal shells and first database migration are now present.
+The Agent Trust, Capital & Commission Engine was only partially present before this task. Registration, verification and a basic directory existed; capital declarations, verified guarantees, capital tiers, dedicated tracking transactions, escrow-ready metadata, commission rules/ledger and revenue reporting did not exist as a complete module.
 
-**Important:** The Supabase project has not been provisioned or connected, dependencies have not been installed in a local runtime, and no build/test result has yet been verified. The repository is not production-ready.
+The new feature branch adds these capabilities without modifying main or any CFG repository/database. The module is a tracking and accounting-calculation layer only. It cannot hold funds, execute payments, release escrow or pay commissions.
 
-## 2. Repository and branch
+## Repository and branch
 
-| Item | Finding |
-|---|---|
-| Repository | `MKONDE/Money-flow-agency` |
-| Visibility | Private |
-| Default branch | `main` |
-| Working branch | `feature/mfa-foundation-audit-v1` |
-| Working branch exists | Yes |
-| Connected account permission | Admin / Push |
-| GitHub repository size reported during audit | 163 KB |
-| Production deployment | Not performed |
-| Merge to main | Not performed |
+- Repository: MKONDE/Money-flow-agency (private).
+- Default branch: main.
+- New branch created: feature/agent-trust-capital-commission-v1.
+- New branch was based on the previously reviewed development branch, feature/mfa-foundation-audit-v1, so existing foundation work is preserved.
+- No direct main commit.
+- No merge and no production deployment.
+- No .env file or secret was added.
 
-## 3. Initial audit findings
+## Existing functionality found
 
-The `main` branch root contained `README.md`, `app/`, `assets/`, `index.html`, `package.json` and `public/`. The feature branch recursive Git tree was subsequently inspected. It contains Next.js App Router pages under `src/app/`, shared components, Supabase client/server helpers, five pre-existing SQL migrations, CI workflow, project configuration, and the two audit/plan documents. The working branch is not an empty scaffold.
+- Agent account/application registration and pending verification.
+- Agent profile fields for business identity, country, region, city, services, languages and payment networks.
+- Verified-only public agent directory projection.
+- Agent online/offline state.
+- Super Admin route protected by profile role and AAL2.
+- Agent application approve/reject/suspend/request-information workflow.
+- Country representation and location profiles.
+- Existing demo service-request workflow and agent assignment.
+- Supabase Auth SSR and RLS foundations.
 
-## 4. Foundation files now added
+## New implementation on this branch
 
-- Next.js 16 App Router + TypeScript project manifest/configuration.
-- Supabase browser/server clients using cookie-based SSR.
-- Next.js 16 `proxy.ts` session-refresh integration.
-- Environment variable example with placeholders only.
-- Responsive public site: Home, About, Services, Agents, Become an Agent, Partners, Advertising, Help, Contact, Privacy and Terms.
-- Agent application sign-up flow with email confirmation callback.
-- Agent and Super Admin portal foundations.
-- Supabase migration: profiles, agent profiles, verification events, business partners, support tickets and audit logs.
-- Row Level Security policies and limited column grants to prevent users from self-assigning privileged roles or transaction-enabled status.
-- Updated README with setup and limitations.
+### Database migrations
+1. 20261101130000_mfa_agent_trust_capital_commission_tables.sql
+2. 20261101131000_mfa_agent_trust_capital_commission_rls.sql
+3. 20261101131500_mfa_partner_admin_aal2.sql
+4. 20261101132000_mfa_agent_trust_capital_commission_workflows.sql
+5. 20261101133000_mfa_public_directory_online_presence.sql
+6. 20261101134000_mfa_legacy_demo_request_security_hardening.sql
 
-## 5. Security and product boundaries
+### Frontend/backend
+- Agent capital and transaction-float declaration form.
+- Separate documentary guarantee reference submission and admin verification.
+- Trust classifications, badge suspension/revocation and history.
+- Currency-specific capital tier configuration.
+- Transaction tracking records, allowed status transitions and immutable history.
+- Customer tracking page, agent tracking queue and dispute form.
+- Escrow-ready metadata with customer confirmation; no fund release.
+- Commission rules with global/country/service/agent/partner scope, effective dates and caps/minimums.
+- Default 70/20/10 commission calculation snapshot.
+- Non-payable commission ledger and revenue/country/partner reports.
+- Agent pending exposure, daily and monthly volume reporting.
+- Public directory filters, online status, payment network display and opt-in public contact consent.
+- Admin AAL2 control center and links from the main admin workspace.
+- 20 tracking-request creations per hour per authenticated customer as an initial rate guardrail.
+- Legacy demo service-request RLS/ACL hardening and SECURITY INVOKER agent RPC.
+- SQL schema smoke test, security report, test report and backup/recovery runbook.
 
-1. MFA remains independent; CFG is a partner, not the platform owner.
-2. No MFA-to-CFG database, wallet or ledger connection exists.
-3. Public directory reads only profiles with `status = verified`.
-4. Agent sign-up creates a pending application; it does not grant transaction permissions.
-5. Agent users cannot update role, verification status or `transaction_enabled` through the granted columns.
-6. Super Admin portal requires an authenticated Super Admin and AAL2 MFA. Country/Regional Manager access is intentionally disabled until scoped policies exist.
-7. Verification evidence is not public.
-8. Real deposits, withdrawals, transfers, customer wallets, custody, crypto exchange, payment execution and guarantee collection remain disabled.
-9. No service-role secret is exposed in frontend variables or committed.
-10. No production deployment or merge was performed.
+## Critical financial safety constraints
 
-## 6. Current limitations / risks
+- Every MFA tracking transaction must have simulation_only = true.
+- Escrow workflows must have funds_held = false and release_executed = false.
+- Commission entries must have payable = false.
+- Commission is calculated on the explicit commissionable_amount service-fee pool, not automatically on transaction principal.
+- No customer wallet, MFA token, stored-value balance, real deposit, withdrawal, custody, payment execution, escrow balance or payout path is created.
+- Capital float and guarantee data are declarations/references only.
+- CFG remains a separate partner; no CFG database, wallet or ledger connection is introduced.
 
-- A dedicated MFA Supabase project must be created and configured by the owner.
-- The migration has been committed but has not yet been applied to a live MFA database.
-- Email provider/confirmation settings must be configured in Supabase.
-- Logo/profile-image upload and storage bucket policies are pending.
-- A Super Admin-only agent verification RPC, server action and review UI have now been added on the feature branch; the new migration still needs application and runtime verification.
-- Country and regional managers require explicit data-scope policies before activation.
-- Directory search filters, partner API, commission engine, advertising workflow, support case management and guarantee sandbox remain incomplete.
-- Administrator MFA enrollment UI and account provisioning procedure remain incomplete.
-- GitHub Actions previously stopped at Node setup because `setup-node` npm caching required a missing lockfile. The cache setting has been removed; the corrected CI run is pending. Typecheck, lint and production build have not yet been confirmed.
-- Legal/privacy/compliance pages are preliminary and require qualified review before production.
+## Live Supabase schema audit
 
-## 7. Immutable project boundaries
+The connected project is named money-flow-agency and is separate from CFG. Only read-only catalog, migration-history and advisor queries were run. No new module migration was applied.
 
-- Do not modify CFG, Jakay Group, Jakay Pesa, Maharoos Mini or any other repository/project.
-- Do not connect to CFG/CFGG ledger or wallet.
-- Do not invent unapproved fees, commissions, advertising prices or transaction limits.
-- V1.1 remains additive to V1.
-- Work only on `feature/mfa-foundation-audit-v1`; no direct commits to `main`.
-- No production deployment or merge without owner approval.
+The live migration history contains 12 versions. Five live migration versions are absent from the repository migration folder:
+- 20261101033516 — mfa_send_receive_requests_v1
+- 20261101033526 — mfa_request_workflow_fk_indexes
+- 20261101033713 — mfa_agent_request_status_rpc
+- 20261101102303 — mfa_rls_policy_consolidation_global_presence_v1
+- 20261101102331 — mfa_agent_profile_read_policy_consolidation_v1
 
-## 8. Corrected branch inventory and review snapshot (2026-11-01)\n\n- Base `main`: small existing site/app structure; not empty.\n- Feature branch: Next.js 16 App Router + TypeScript, Supabase Auth/SSR, public pages, agent onboarding, verified-only directory, agent portal, Super Admin portal, global representation/offices, location profiles, demo request handling, and SQL migrations.\n- New in this review: `src/app/admin/AgentApplicationReview.tsx`, `src/app/admin/actions.ts`, and `supabase/migrations/20261101120000_mfa_agent_verification_workflow.sql`; Admin page wired to the new workflow.\n- CI workflow updated to avoid npm cache setup when no lockfile is committed.\n- The current working branch has an existing open PR #1 to `main`; it remains unmerged.\n- No production deployment was performed.\n\n## 9. Audit conclusion
+The live database also contains operational tables (service requests/events, partner services, payment partners, agent service listings, partner confirmations, receipts and service disputes) that are not fully represented by checked-in migrations. This is migration-history/schema drift. Reconcile the missing migration files before replaying the entire repository migration folder against any shared/live database. The new 20261101134000 hardening migration safely skips the optional legacy service-request tables if they are absent.
 
-The repository baseline, recursive branch inventory and implementation plan are documented. GitHub CI has passed dependency installation, typecheck, lint and production build. Live Supabase migration application, auth/email/MFA configuration, database permission tests, full browser QA and dependency vulnerability triage remain outstanding. This is a development foundation, not an operational financial platform.
+## Security observations
+
+Supabase Security Advisor reported:
+1. A SECURITY DEFINER public.agent_update_service_request function executable by authenticated users. Its inspected implementation checks verified-agent identity, assigned request, demo_only and allowed transitions, but the advisor flags its execution mode. This branch includes a migration to convert it to SECURITY INVOKER, add an assigned-agent RLS update policy and private trigger validation, and revoke anon table privileges. The fix is not yet applied to the live database.
+2. Leaked password protection is disabled in Supabase Auth. This must be enabled in the Supabase dashboard before production.
+
+The live database had anon grants on legacy demo service-request tables even though RLS was enabled. The new migration revokes those grants; not yet applied.
+
+## Validation status
+
+- GitHub Actions: runs on all feature branches; latest run is in progress at the time of this report.
+- SQL smoke test: committed, not run against a migrated staging database.
+- Supabase live DDL: not applied.
+- Browser/mobile QA: pending.
+- RLS adversarial tests and concurrent limit tests: pending.
+- Backup configuration and restore drill: pending.
+- Dependency audit previously reported 16 moderate vulnerabilities; advisory triage remains required.
+
+## Remaining production gates
+
+- Reconcile live migration history with repository migrations.
+- Apply migrations to isolated MFA staging and run SQL smoke tests.
+- Run role/RLS, concurrency, commission snapshot, dispute and mobile browser tests.
+- Enable leaked-password protection.
+- Configure backup/PITR and complete restore drill.
+- Complete logo/profile image storage upload and partner API/webhook work.
+- Obtain legal/compliance approval for any future regulated activity.
+- Owner approval for merge and any production deployment.
+
+## Conclusion
+
+The module is implemented in the feature branch at code and migration-draft level. It is not yet live, runtime-validated or production-ready. No money movement or CFG integration has been enabled.
