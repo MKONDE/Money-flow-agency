@@ -358,7 +358,7 @@ create unique index if not exists mfa_disputes_one_per_transaction_idx
   on public.mfa_transaction_disputes(transaction_id);
 
 create or replace function private.mfa_guard_dispute_update()
-returns trigger language plpgsql security definer set search_path='' as $
+returns trigger language plpgsql security definer set search_path='' as $$
 declare v_admin boolean := private.current_mfa_role()='super_admin' and (select auth.jwt()->>'aal')='aal2';
 begin
   if not v_admin then raise exception 'AAL2 Super Admin permission required to resolve disputes' using errcode='42501'; end if;
@@ -383,7 +383,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function private.mfa_guard_dispute_update() from public,anon,authenticated;
 create trigger mfa_dispute_update_guard before update on public.mfa_transaction_disputes
 for each row execute function private.mfa_guard_dispute_update();
