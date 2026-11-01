@@ -68,6 +68,9 @@ begin
   if not exists(select 1 from pg_catalog.pg_views where schemaname='public' and viewname='mfa_revenue_summary') then
     raise exception 'Revenue summary view is missing';
   end if;
+  if not exists(select 1 from pg_catalog.pg_views where schemaname='public' and viewname='mfa_agent_exposure_summary') then
+    raise exception 'Agent exposure summary view is missing';
+  end if;
   if not exists(select 1 from pg_catalog.pg_policy where polname='mfa_transactions_admin_all') then
     raise exception 'AAL2 Super Admin transaction policy is missing';
   end if;
