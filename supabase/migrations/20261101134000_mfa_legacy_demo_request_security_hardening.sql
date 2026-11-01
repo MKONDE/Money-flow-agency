@@ -99,7 +99,7 @@ grant execute on function public.agent_update_service_request(uuid,text,text) to
 do $$
 begin
   if to_regclass('public.service_requests') is not null then
-    execute 'revoke all on public.service_requests from anon';
+    execute 'revoke all on public.service_requests from public,anon';
     execute 'revoke update on public.service_requests from authenticated';
     execute 'grant update(request_status,assigned_agent_id) on public.service_requests to authenticated';
 
@@ -114,7 +114,7 @@ begin
   end if;
 
   if to_regclass('public.service_request_events') is not null then
-    execute 'revoke all on public.service_request_events from anon';
+    execute 'revoke all on public.service_request_events from public,anon';
     execute 'revoke update,delete on public.service_request_events from authenticated';
     execute 'grant select,insert on public.service_request_events to authenticated';
     execute 'drop policy if exists request_events_admin_all on public.service_request_events';
