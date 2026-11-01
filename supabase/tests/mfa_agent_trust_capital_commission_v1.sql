@@ -71,6 +71,19 @@ begin
   if not exists(select 1 from pg_catalog.pg_views where schemaname='public' and viewname='mfa_agent_exposure_summary') then
     raise exception 'Agent exposure summary view is missing';
   end if;
+  if not exists(select 1 from pg_catalog.pg_trigger where tgname='mfa_dispute_update_guard' and not tgisinternal) then
+    raise exception 'Dispute decision guard trigger is missing';
+  end if;
+  if not exists(select 1 from pg_catalog.pg_trigger where tgname='mfa_guarantee_review_guard' and not tgisinternal) then
+    raise exception 'Guarantee review guard trigger is missing';
+  end if;
+  if not exists(select 1 from pg_catalog.pg_trigger where tgname='mfa_capital_declaration_guard' and not tgisinternal) then
+    raise exception 'Capital declaration guard trigger is missing';
+  end if;
+  if not exists(select 1 from pg_catalog.pg_indexes where schemaname='public' and indexname='mfa_disputes_one_per_transaction_idx') then
+    raise exception 'Unique one-dispute-per-transaction index is missing';
+  end if;
+
   if not exists(select 1 from pg_catalog.pg_policy where polname='mfa_transactions_admin_all') then
     raise exception 'AAL2 Super Admin transaction policy is missing';
   end if;
