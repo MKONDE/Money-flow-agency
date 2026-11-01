@@ -45,7 +45,7 @@
 - [ ] Provision dedicated MFA Supabase project and apply migration.
 - [ ] Configure email confirmation and administrator MFA.
 - [x] Add Super Admin-only AAL2 agent review RPC, server action and Admin review UI.\n- [ ] Add controlled Super Admin account provisioning procedure.
-- [ ] Apply and validate all migrations in the dedicated MFA Supabase project; run typecheck, lint, build and security tests.
+- [x] GitHub CI: dependency install, TypeScript typecheck, ESLint and production build passed on current branch head.\n- [ ] Apply and validate all migrations in the dedicated MFA Supabase project; run database security and permission tests.
 
 ### Phase 2 — Public website
 - [x] Responsive home page.
@@ -99,7 +99,7 @@
 - [ ] Agent verification lifecycle and Trust Badge tests.
 - [ ] Upload/input validation and rate-limit tests.
 - [ ] Idempotency and rule-version history tests.
-- [ ] Secret scanning.
+- [ ] Secret scanning.\n- [ ] Triage 16 moderate dependency vulnerabilities reported during `npm install`; review advisories before applying upgrades.
 - [ ] Backup/restore plan and restore test.
 - [ ] Run automated tests, lint/typecheck and build.
 - [ ] Publish remaining-work, security and test reports.
@@ -127,6 +127,6 @@ Until legal and banking approval is documented, keep guarantee functions in sand
 - Next.js + Supabase foundation: committed.
 - Public pages and initial agent application: committed.
 - Initial database migration and RLS: committed, not yet applied to a live Supabase project.
-- Agent/Admin portal shells and initial Super Admin verification workflow: committed; live Supabase migration and runtime validation pending.
-- CI: earlier run failed before dependency installation because setup-node npm cache required a lockfile; cache configuration corrected and new run pending.
+- Agent/Admin portal shells and Super Admin verification workflow: committed; app typecheck/lint/build passed; live Supabase migration and authenticated runtime validation pending.
+- CI: successful on current branch head (run `41294653176`); dependency install, typecheck, lint and production build passed.
 - Production deployment and merge: not performed.
