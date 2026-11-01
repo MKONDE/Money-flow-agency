@@ -27,7 +27,10 @@ export default async function AdminPortalPage() {
     supabase.from("agent_profiles").select("*", { count: "exact", head: true }).eq("status", "verified"),
     supabase.from("agent_profiles").select("*", { count: "exact", head: true }).eq("status", "suspended"),
     supabase.from("service_requests").select("id,reference_code,service_type,request_mode,request_status,amount,currency,customer_note,created_at,assigned_agent_id").eq("demo_only", true).order("created_at", { ascending: false }).limit(100),
-    supabase.from("agent_profiles").select("id,brand_name,city,region,country_code,status").eq("status", "verified").order("brand_name").limit(200)
+    supabase.from("agent_profiles").select("id,brand_name,city,region,country_code,status").eq("status", "verified").order("brand_name").limit(200),
+    supabase.from("country_representatives").select("id,country_code,display_name,title,public_city,public_phone,public_email,verification_status,status,show_publicly").order("created_at",{ascending:false}),
+    supabase.from("country_offices").select("id,country_code,office_name,office_type,city,public_address,public_phone,verification_status,status,show_publicly").order("created_at",{ascending:false}),
+    supabase.from("agent_location_profiles").select("id,agent_id,country_code,region,district,city,ward,neighbourhood,service_address,location_type,service_areas,public_listing_consent,review_status").order("created_at",{ascending:false}).limit(200)
   ]);
 
   return <section className="content-section"><div className="container">
@@ -44,6 +47,11 @@ export default async function AdminPortalPage() {
       <p className="form-note">Review incoming demo requests and assign them to verified agents. Assignment does not execute a payment or bank transfer.</p>
       {requestsError || agentsError ? <p className="form-error">Data could not be loaded. Check Supabase permissions and try again.</p> :
         <AdminWorkspace initialRequests={requests ?? []} agents={agents ?? []} />}
+    </div>
+    <div className="content-card" style={{ marginTop: 22 }}>
+      <h2 style={{ fontSize: 24 }}>Global Representation & Country Offices</h2>
+      <p className="form-note">Super Admin pekee ndiye anaweza kuteua wawakilishi, kusajili ofisi na kudhibiti taarifa zinazoonekana hadharani.</p>
+      <GlobalPresenceWorkspace representatives={representatives ?? []} offices={offices ?? []} agentLocations={agentLocations ?? []} />
     </div>
     <div className="content-card" style={{ marginTop: 22 }}>
       <h2 style={{ fontSize: 24 }}>Administration controls</h2>
