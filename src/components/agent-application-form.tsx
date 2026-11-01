@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const serviceOptions = ["Agent assistance","Customer support","Business services","Agricultural services","Marketplace support","Payment guidance"];
 const languageOptions = ["Kiswahili","English","Français","Lingala","Kinyarwanda","Other"];
+const networkOptions = ["M-Pesa","Airtel Money","Mixx by Yas","HaloPesa","Bank transfer","Other licensed payment network"];
 
 export function AgentApplicationForm() {
   const [busy,setBusy]=useState(false);
@@ -23,7 +24,7 @@ export function AgentApplicationForm() {
           account_type:"agent",agent_type:String(form.get("agent_type")),brand_name:String(form.get("brand_name")),
           full_name:String(form.get("full_name")),description:String(form.get("description")),country_code:String(form.get("country_code")),
           region:String(form.get("region")),city:String(form.get("city")),service_address:String(form.get("service_address")),
-          phone:String(form.get("phone")),website:String(form.get("website")),languages:selected("languages"),services:selected("services")
+          phone:String(form.get("phone")),website:String(form.get("website")),languages:selected("languages"),services:selected("services"),payment_networks:selected("payment_networks")
         }}
       });
       if(authError)throw authError;
@@ -48,6 +49,7 @@ export function AgentApplicationForm() {
       <div className="field full"><label htmlFor="description">Describe your business or services</label><textarea id="description" name="description" maxLength={1200}/></div>
       <div className="field full"><label>Languages</label><div className="check-grid">{languageOptions.map(v=><label className="check-option" key={v}><input type="checkbox" name="languages" value={v}/>{v}</label>)}</div></div>
       <div className="field full"><label>Services you provide</label><div className="check-grid">{serviceOptions.map(v=><label className="check-option" key={v}><input type="checkbox" name="services" value={v}/>{v}</label>)}</div></div>
+      <div className="field full"><label>Payment networks you support (directory information only)</label><div className="check-grid">{networkOptions.map(v=><label className="check-option" key={v}><input type="checkbox" name="payment_networks" value={v}/>{v}</label>)}</div></div>
     </div>
     <p className="form-note" style={{marginTop:18}}>Submitting an application does not make you a verified agent or authorize financial transactions. MFA will review the application. Logo and profile-image upload will be enabled in the agent portal after the storage bucket is configured.</p>
     {error&&<p className="form-error" role="alert">{error}</p>}{message&&<p className="form-success" role="status">{message}</p>}
