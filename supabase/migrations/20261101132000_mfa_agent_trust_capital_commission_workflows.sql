@@ -368,6 +368,17 @@ for each row execute function private.mfa_reject_immutable_mutation();
 create trigger mfa_financial_audit_immutable before update or delete on public.mfa_financial_audit_events
 for each row execute function private.mfa_reject_immutable_mutation();
 
+create or replace view public.mfa_agent_exposure_summary with (security_invoker=true) as
+select agent_id,currency,
+  coalesce(sum(amount) filter(where status in ('PENDING_AGENT','PAYMENT_PENDING','PAYMENT_SUBMITTED','UNDER_REVIEW','CONFIRMED','DISPUTED')),0) as pending_exposure,
+  coalesce(sum(amount) filter(where created_at>=date_trunc('day',now()) and status not in ('REJECTED','CANCELLED','EXPIRED')),0) as daily_volume,
+  coalesce(sum(amount) filter(where created_at>=date_trunc('month',now()) and status not in ('REJECTED','CANCELLED','EXPIRED')),0) as monthly_volume,
+  count(*) filter(where status in ('PENDING_AGENT','PAYMENT_PENDING','PAYMENT_SUBMITTED','UNDER_REVIEW','CONFIRMED','DISPUTED')) as pending_transaction_count
+from public.mfa_transactions
+where agent_id is not null
+group by agent_id,currency;
+grant select on public.mfa_agent_exposure_summary to authenticated;
+
 create or replace view public.mfa_revenue_summary with (security_invoker=true) as
 select currency,country_code,partner_id,agent_id,
   sum(agent_commission) as agent_commission_total,
