@@ -82,7 +82,7 @@ The public website does not require a service-role key. Never expose a service-r
 - Admin write policies require the Super Admin database role and AAL2.
 - Agent permissions are limited to owned declarations, guarantee submissions and assigned transaction progress.
 - Customer permissions are limited to owned tracking records and permitted disputes/confirmations.
-- Partner owners can read their assigned transaction references only.
+- Partner owners can read transaction records that reference their own partner record; they have no transaction write permission.
 - Status history, dispute events, trust history, commission entries and financial audit events are append-only.
 - Trigger functions live in the non-exposed \`private\` schema, with execute privileges revoked from public API roles.
 - Agent assignment checks capital tiers, verified guarantees, per-transaction limits, pending exposure, daily volume and monthly volume.
@@ -101,6 +101,14 @@ The public website does not require a service-role key. Never expose a service-r
 - Backups, point-in-time recovery and restore drills must be configured and tested in Supabase before production.
 - Legal, privacy, financial-services and country-specific compliance review is required before any live financial service.
 - No production deployment, merge to main, real payment, deposit, withdrawal, escrow, custody or transfer is authorized.
+
+## Reports and handover
+
+- docs/MFA_AGENT_TRUST_CAPITAL_COMMISSION_SECURITY_REPORT_V1.md
+- docs/MFA_AGENT_TRUST_CAPITAL_COMMISSION_TEST_REPORT_V1.md
+- docs/MFA_BACKUP_RECOVERY_RUNBOOK_V1.md
+- MFA_REPOSITORY_AUDIT_V1.md
+- MFA_IMPLEMENTATION_PLAN_V1.md
 
 ## Validation
 
