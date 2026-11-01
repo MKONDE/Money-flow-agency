@@ -27,20 +27,27 @@ returns trigger language plpgsql security definer set search_path='' as $$
 declare
   v_agent_status text;
   v_declared numeric(20,2);
+  v_currency char(3);
   v_verified_guarantee numeric(20,2);
+  v_guarantee_expiry date;
+  v_has_indefinite boolean;
 begin
   select status into v_agent_status from public.agent_profiles where id=new.agent_id;
   if new.badge_status='active' and new.trust_level<>'independent_agent' and v_agent_status is distinct from 'verified' then
     raise exception 'Trust levels above Independent Agent require a verified agent profile' using errcode='42501';
   end if;
   if new.badge_status='active' and new.trust_level='capital_backed_agent' then
-    select declared_capital into v_declared from public.mfa_agent_capital_profiles where agent_id=new.agent_id;
-    select coalesce(sum(g.amount),0) into v_verified_guarantee from public.mfa_agent_guarantees g
+    select declared_capital,currency into v_declared,v_currency from public.mfa_agent_capital_profiles where agent_id=new.agent_id;
+    select coalesce(sum(g.amount),0),max(g.valid_until),coalesce(bool_or(g.valid_until is null),false)
+      into v_verified_guarantee,v_guarantee_expiry,v_has_indefinite from public.mfa_agent_guarantees g
       join public.mfa_agent_capital_profiles cp on cp.agent_id=g.agent_id and cp.currency=g.currency
-      where g.agent_id=new.agent_id and g.verification_status='verified'
-      and (valid_from is null or valid_from<=current_date) and (valid_until is null or valid_until>=current_date);
+      where g.agent_id=new.agent_id and g.currency=v_currency and g.verification_status='verified'
+      and (g.valid_from is null or g.valid_from<=current_date) and (g.valid_until is null or g.valid_until>=current_date);
     if coalesce(v_declared,0)<=0 or v_verified_guarantee<=0 then
-      raise exception 'Capital-Backed Agent requires declared capital and a separately verified guarantee' using errcode='23514';
+      raise exception 'Capital-Backed Agent requires declared capital and a separately verified guarantee in the declared currency' using errcode='23514';
+    end if;
+    if not v_has_indefinite and v_guarantee_expiry is not null and (new.valid_until is null or new.valid_until::date>v_guarantee_expiry) then
+      new.valid_until:=v_guarantee_expiry::timestamptz;
     end if;
   end if;
   if tg_op='UPDATE' then
@@ -55,6 +62,59 @@ $$;
 revoke all on function private.mfa_guard_trust_badge_change() from public,anon,authenticated;
 create trigger mfa_trust_badge_guard before insert or update on public.mfa_agent_trust_badges
 for each row execute function private.mfa_guard_trust_badge_change();
+
+
+create or replace function private.mfa_guard_capital_declaration()
+returns trigger language plpgsql security definer set search_path='' as $
+declare v_level text; v_badge_status text;
+begin
+  select trust_level,badge_status into v_level,v_badge_status
+  from public.mfa_agent_trust_badges where agent_id=new.agent_id;
+  if v_level='capital_backed_agent' and v_badge_status='active' then
+    if new.declared_capital<=0 or not exists(
+      select 1 from public.mfa_agent_guarantees g
+      where g.agent_id=new.agent_id and g.currency=new.currency and g.verification_status='verified'
+      and (g.valid_from is null or g.valid_from<=current_date)
+      and (g.valid_until is null or g.valid_until>=current_date)
+    ) then
+      raise exception 'Suspend or demote the Capital-Backed badge before changing its qualifying capital declaration' using errcode='23514';
+    end if;
+  end if;
+  return new;
+end;
+$;
+revoke all on function private.mfa_guard_capital_declaration() from public,anon,authenticated;
+create trigger mfa_capital_declaration_guard before insert or update on public.mfa_agent_capital_profiles
+for each row execute function private.mfa_guard_capital_declaration();
+
+create or replace function private.mfa_guard_guarantee_review()
+returns trigger language plpgsql security definer set search_path='' as $
+begin
+  if new.verification_status='verified' then
+    if new.verified_by is null or new.verified_at is null
+      or (new.valid_from is not null and new.valid_from>current_date)
+      or (new.valid_until is not null and new.valid_until<current_date) then
+      raise exception 'A guarantee can only be verified with reviewer identity and a currently valid date range' using errcode='23514';
+    end if;
+  end if;
+
+  if old.verification_status='verified' and (
+    new.verification_status<>'verified'
+    or new.currency is distinct from old.currency
+    or (new.valid_from is not null and new.valid_from>current_date)
+    or (new.valid_until is not null and new.valid_until<current_date)
+  ) then
+    update public.mfa_agent_trust_badges
+    set badge_status='suspended',
+        reason='Capital guarantee status or validity changed; badge automatically suspended'
+    where agent_id=new.agent_id and trust_level='capital_backed_agent' and badge_status='active';
+  end if;
+  return new;
+end;
+$;
+revoke all on function private.mfa_guard_guarantee_review() from public,anon,authenticated;
+create trigger mfa_guarantee_review_guard before update on public.mfa_agent_guarantees
+for each row execute function private.mfa_guard_guarantee_review();
 
 create or replace function private.mfa_enforce_agent_transaction_limits()
 returns trigger language plpgsql security definer set search_path='' as $$
