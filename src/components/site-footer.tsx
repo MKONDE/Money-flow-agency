@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export function SiteFooter() {
@@ -5,9 +6,8 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="container footer-grid">
         <div>
-          <Link href="/" className="brand footer-brand">
-            <span className="brand-mark">M</span>
-            <span className="brand-copy"><strong>MONEY FLOW</strong><small>AGENCY</small></span>
+          <Link href="/" className="brand footer-brand" aria-label="Money Flow Agency home">
+            <Image src="/mfa-logo.svg" alt="Money Flow Agency" width={104} height={104} />
           </Link>
           <p className="footer-note">An independent agent network and business services platform built for trusted connections.</p>
         </div>
