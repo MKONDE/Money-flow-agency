@@ -205,3 +205,41 @@ Before implementation beyond demo/request tracking, owner must approve the detai
 
 ---
 **Decision record:** Customer may choose Self-Service or Agent-Assisted. Agent service advertisements link directly to the corresponding service request flow. All partners retain their own financial systems and authoritative transaction records.
+
+
+## 15. Bank-to-bank transfer use case (explicitly included)
+
+A customer may have money in their own bank account and want to send it to another person's bank account, locally or across supported countries. This is a first-class **Bank Transfer** service under Send Money, not merely an advertisement or a generic agent request.
+
+### Customer flow — direct/self-service
+1. Customer selects **Send Money → Bank Transfer**.
+2. Customer selects source country/bank and destination country/bank (where the provider corridor is supported).
+3. MFA displays whether the route is available as partner-hosted self-service, API-enabled, or not yet supported.
+4. Customer enters amount/currency and the minimum beneficiary details required by the selected bank/provider.
+5. Where possible, MFA hands off to the bank's official app/website/hosted payment flow or a licensed transfer provider. The customer authenticates and authorizes the transfer directly with that institution.
+6. The bank/provider executes the transfer and remains authoritative for the debit, credit, fees, settlement and transaction reference.
+7. MFA receives a signed status callback/API response where contracted and technically available, or displays a clearly labelled pending/manual status until independently checked.
+8. MFA presents the provider's confirmation and a linked MFA service receipt. The MFA receipt is not a substitute for the bank's official receipt.
+
+### Customer flow — agent-assisted
+1. Customer chooses **Agent-Assisted Bank Transfer** and selects a verified agent whose listing is approved for that bank/corridor.
+2. Agent accepts the request and explains the provider's official process, applicable fees, limits and estimated timing.
+3. Customer authorizes the bank transfer directly through their own bank app, branch, USSD or other bank-approved channel. If an agent is permitted to initiate on behalf of a customer, that authority must come from the bank/provider's formal agent mandate and controls—not from MFA alone.
+4. Agent may help submit permitted non-secret beneficiary/request information and track the provider reference.
+5. Bank/provider confirmation is checked before the request is marked completed. Agent-uploaded proof by itself remains unverified until independently reviewed.
+
+### Bank transfer fields and protections
+- Source bank/provider and destination bank/provider
+- Transfer corridor (country), currency, amount
+- Beneficiary name and minimum required account identifier
+- Payer/initiator reference where required
+- Bank/provider transaction reference, status, timestamp and fee confirmation
+- Mask account identifiers in agent/customer lists and receipts; reveal full details only where operationally necessary and authorized.
+- Do not store online banking usernames/passwords, PINs, OTPs, card CVV, session cookies or one-time authorization codes.
+- Do not ask customers to send funds to an agent's personal account as a substitute for a formal, approved collection/settlement arrangement.
+- Never show a request as **paid/completed** merely because the customer uploaded a screenshot or the agent clicked a button.
+
+### Important operating distinction
+MFA can discover banks, agents and supported transfer services; collect a service request; route a customer to a bank/provider; track a reference; and display a verified result. MFA cannot itself debit one bank account and credit another unless an appropriately licensed/contracted payment or remittance provider performs the regulated execution through an approved integration. A bank-to-bank transfer is therefore **not automatically available just because the customer and recipient have account numbers**.
+
+For the first Phase 1 build, implement the bank-transfer request journey in demo mode only: form, masked demo beneficiary details, request reference, agent assignment simulation, status timeline and sample receipt clearly watermarked **DEMO — NOT A REAL BANK TRANSFER**. Do not connect bank APIs or move money in Phase 1.
