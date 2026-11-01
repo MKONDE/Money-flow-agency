@@ -100,6 +100,7 @@ do $$
 begin
   if to_regclass('public.service_requests') is not null then
     execute 'revoke all on public.service_requests from public,anon';
+    execute 'grant select,insert on public.service_requests to authenticated';
     execute 'revoke update on public.service_requests from authenticated';
     execute 'grant update(request_status,assigned_agent_id) on public.service_requests to authenticated';
 
