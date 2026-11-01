@@ -382,8 +382,21 @@ create trigger mfa_seed_agent_trust_badge after insert on public.agent_profiles
 for each row execute function private.mfa_seed_agent_trust_badge();
 
 create or replace function private.mfa_guard_trust_badge_change()
-returns trigger language plpgsql security definer set search_path='' as $$
+returns trigger language plpgsql security definer set search_path='' as $
+declare v_agent_status text; v_declared numeric(20,2); v_verified_guarantee numeric(20,2);
 begin
+  select status into v_agent_status from public.agent_profiles where id=new.agent_id;
+  if new.trust_level<>'independent_agent' and v_agent_status is distinct from 'verified' then
+    raise exception 'Trust levels above Independent Agent require a verified agent profile' using errcode='42501';
+  end if;
+  if new.trust_level='capital_backed_agent' then
+    select declared_capital into v_declared from public.mfa_agent_capital_profiles where agent_id=new.agent_id;
+    select coalesce(sum(amount),0) into v_verified_guarantee from public.mfa_agent_guarantees
+      where agent_id=new.agent_id and verification_status='verified' and (valid_until is null or valid_until>=current_date);
+    if coalesce(v_declared,0)<=0 or v_verified_guarantee<=0 then
+      raise exception 'Capital-Backed Agent requires declared capital and a separately verified guarantee' using errcode='23514';
+    end if;
+  end if;
   if tg_op='UPDATE' and (old.trust_level is distinct from new.trust_level or old.badge_status is distinct from new.badge_status) then
     insert into public.mfa_agent_trust_history(agent_id,previous_level,new_level,badge_status,reason,actor_id)
     values(new.agent_id,old.trust_level,new.trust_level,new.badge_status,new.reason,auth.uid());
@@ -391,7 +404,7 @@ begin
   return new;
 end; $$;
 revoke all on function private.mfa_guard_trust_badge_change() from public,anon,authenticated;
-create trigger mfa_trust_badge_history after update on public.mfa_agent_trust_badges
+create trigger mfa_trust_badge_guard before insert or update on public.mfa_agent_trust_badges
 for each row execute function private.mfa_guard_trust_badge_change();
 
 create or replace function private.mfa_enforce_agent_transaction_limits()
@@ -458,6 +471,12 @@ begin
     raise exception 'Only an AAL2 Super Admin may assign or reassign an agent' using errcode='42501';
   end if;
   if new.commissionable_amount is distinct from old.commissionable_amount
+    or new.service_code is distinct from old.service_code
+    or new.payment_network is distinct from old.payment_network
+    or new.customer_reference is distinct from old.customer_reference
+    or new.agent_reference is distinct from old.agent_reference
+    or new.partner_reference is distinct from old.partner_reference
+    or new.customer_note is distinct from old.customer_note
     or new.partner_id is distinct from old.partner_id
     or new.amount is distinct from old.amount
     or new.currency is distinct from old.currency
