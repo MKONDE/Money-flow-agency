@@ -23,7 +23,7 @@ Independent agent network and business services platform.
 
 1. Install Node.js 20.9 or newer.
 2. Create a **new, dedicated Supabase project for MFA**. Do not reuse credentials from any other project.
-3. In the MFA Supabase SQL Editor, apply `supabase/migrations/202610310001_mfa_foundation.sql`.
+3. In the MFA Supabase SQL Editor, apply every file in `supabase/migrations/` in filename order (oldest to newest). This includes the base schema, security hardening, global representation/location controls, AAL2 and column grants, RLS optimization, and the agent verification workflow. Apply them only to the dedicated MFA Supabase project.
 4. Copy `.env.example` to `.env.local` and enter the MFA project's Project URL and Publishable Key.
 5. Install dependencies with `npm install`.
 6. Run `npm run dev` and open `http://localhost:3000`.
