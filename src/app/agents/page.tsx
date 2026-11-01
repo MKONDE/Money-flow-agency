@@ -24,7 +24,7 @@ export default async function AgentsPage({searchParams}:{searchParams:Promise<{c
   </div><button className="button button-small" style={{marginTop:14}}>Search agents</button></form>
   {agents.length?<div className="pillar-grid">{agents.map(a=>{const b=badgeMap.get(a.id);const label=b?.badge_status==="active"&&(!b.valid_until||new Date(b.valid_until)>new Date())?b.trust_level:"verified_agent";return <article className="pillar-card" key={a.id}>
    <div style={{display:"flex",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}><span className="badge-status">{label.replaceAll("_"," ").toUpperCase()}</span><span className="form-note">{a.is_online?"● ONLINE":"○ OFFLINE"}</span></div>
-   <h3 style={{marginTop:22}}>{a.brand_name}</h3><p>{[a.city,a.region,a.country_code].filter(Boolean).join(", ")}</p><p>{a.description}</p>
+   {a.logo_url&&<img src={a.logo_url} alt={a.brand_name+" logo"} loading="lazy" referrerPolicy="no-referrer" style={{width:72,height:72,objectFit:"contain",borderRadius:12,marginTop:18}}/>}<h3 style={{marginTop:22}}>{a.brand_name}</h3><p>{[a.city,a.region,a.country_code].filter(Boolean).join(", ")}</p><p>{a.description}</p>
    <div className="form-note">{(a.services??[]).join(" · ")}</div>
    {(a.payment_networks??[]).length>0&&<p className="form-note">Networks: {(a.payment_networks??[]).join(" · ")}</p>}
    {a.public_phone&&<p className="form-note">Phone: {a.public_phone}</p>}{a.public_email&&<p className="form-note">Email: {a.public_email}</p>}
