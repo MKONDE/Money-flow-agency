@@ -136,6 +136,13 @@ begin
     raise exception 'Only an AAL2 Super Admin may assign or reassign an agent' using errcode='42501';
   end if;
 
+  if not (v_role='super_admin' and (select auth.jwt()->>'aal')='aal2') then
+    select user_id,status into v_agent_user,v_agent_status from public.agent_profiles where id=old.agent_id;
+    if v_agent_user is distinct from auth.uid() or v_agent_status is distinct from 'verified' then
+      raise exception 'Only the verified assigned agent may update tracking progress' using errcode='42501';
+    end if;
+  end if;
+
   if new.commissionable_amount is distinct from old.commissionable_amount
     or new.service_code is distinct from old.service_code
     or new.payment_network is distinct from old.payment_network
@@ -167,7 +174,6 @@ begin
         raise exception 'Invalid transaction status transition' using errcode='22023';
       end if;
     else
-      select user_id,status into v_agent_user,v_agent_status from public.agent_profiles where id=old.agent_id;
       if new.status='DISPUTED' and exists(
         select 1 from public.mfa_transaction_disputes d
         where d.transaction_id=old.id and d.opened_by=auth.uid() and d.dispute_status='open'
