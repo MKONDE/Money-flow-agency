@@ -9,7 +9,7 @@
 
 ## 1. Executive summary
 
-The private repository and working branch were confirmed. The initial inspection found a README-only repository with no application framework, dependency manifest, database schema, authentication or deployment configuration. The audit and implementation plan were committed before application code was added.
+The private repository and working branch were confirmed. A later recursive inspection corrected the initial limited root-only assessment: `main` already contained a small Next.js-related app structure, `index.html`, `package.json`, `app/`, `assets/` and `public/`. The feature branch contains a substantially expanded Next.js 16 + TypeScript + Supabase implementation. The original README-only description was incomplete and must not be treated as an accurate description of the base branch.
 
 Following owner approval, a Next.js App Router + TypeScript application foundation and a dedicated Supabase SSR integration were added on the feature branch. The initial public website, agent application flow, public directory, protected portal shells and first database migration are now present.
 
@@ -25,13 +25,13 @@ Following owner approval, a Next.js App Router + TypeScript application foundati
 | Working branch | `feature/mfa-foundation-audit-v1` |
 | Working branch exists | Yes |
 | Connected account permission | Admin / Push |
-| Initial repository size | 0 KB |
+| GitHub repository size reported during audit | 163 KB |
 | Production deployment | Not performed |
 | Merge to main | Not performed |
 
 ## 3. Initial audit findings
 
-The initial root inspection confirmed README only. These paths were not found before scaffolding: package manifests/lockfiles, Next/Vite config, TypeScript config, Supabase config and .gitignore. The connected GitHub interface did not expose a recursive Git tree listing during the initial audit, so the audit does not claim a recursive enumeration of every nested path.
+The `main` branch root contained `README.md`, `app/`, `assets/`, `index.html`, `package.json` and `public/`. The feature branch recursive Git tree was subsequently inspected. It contains Next.js App Router pages under `src/app/`, shared components, Supabase client/server helpers, five pre-existing SQL migrations, CI workflow, project configuration, and the two audit/plan documents. The working branch is not an empty scaffold.
 
 ## 4. Foundation files now added
 
@@ -65,11 +65,11 @@ The initial root inspection confirmed README only. These paths were not found be
 - The migration has been committed but has not yet been applied to a live MFA database.
 - Email provider/confirmation settings must be configured in Supabase.
 - Logo/profile-image upload and storage bucket policies are pending.
-- Admin verification actions require a controlled server-side workflow and audit logging.
+- A Super Admin-only agent verification RPC, server action and review UI have now been added on the feature branch; the new migration still needs application and runtime verification.
 - Country and regional managers require explicit data-scope policies before activation.
 - Directory search filters, partner API, commission engine, advertising workflow, support case management and guarantee sandbox remain incomplete.
 - Administrator MFA enrollment UI and account provisioning procedure remain incomplete.
-- The SQL migration, dependency installation, typecheck, lint and production build still require execution and review.
+- GitHub Actions previously stopped at Node setup because `setup-node` npm caching required a missing lockfile. The cache setting has been removed; the corrected CI run is pending. Typecheck, lint and production build have not yet been confirmed.
 - Legal/privacy/compliance pages are preliminary and require qualified review before production.
 
 ## 7. Immutable project boundaries
@@ -81,6 +81,6 @@ The initial root inspection confirmed README only. These paths were not found be
 - Work only on `feature/mfa-foundation-audit-v1`; no direct commits to `main`.
 - No production deployment or merge without owner approval.
 
-## 8. Audit conclusion
+## 8. Corrected branch inventory and review snapshot (2026-11-01)\n\n- Base `main`: small existing site/app structure; not empty.\n- Feature branch: Next.js 16 App Router + TypeScript, Supabase Auth/SSR, public pages, agent onboarding, verified-only directory, agent portal, Super Admin portal, global representation/offices, location profiles, demo request handling, and SQL migrations.\n- New in this review: `src/app/admin/AgentApplicationReview.tsx`, `src/app/admin/actions.ts`, and `supabase/migrations/20261101120000_mfa_agent_verification_workflow.sql`; Admin page wired to the new workflow.\n- CI workflow updated to avoid npm cache setup when no lockfile is committed.\n- The current working branch has an existing open PR #1 to `main`; it remains unmerged.\n- No production deployment was performed.\n\n## 9. Audit conclusion
 
 The repository baseline and initial foundation are documented. Public-site and onboarding code has been committed, but runtime validation and live Supabase setup remain outstanding. This is a development foundation, not an operational financial platform.
