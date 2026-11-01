@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import AdminWorkspace from "./AdminWorkspace";
 import AgentApplicationReview from "./AgentApplicationReview";
@@ -62,8 +63,10 @@ export default async function AdminPortalPage() {
       <GlobalPresenceWorkspace representatives={representatives ?? []} offices={offices ?? []} agentLocations={agentLocations ?? []} />
     </div>
     <div className="content-card" style={{ marginTop: 22 }}>
-      <h2 style={{ fontSize: 24 }}>Administration controls</h2>
-      <p className="form-note">Partner approvals, advertising approvals, fee and commission configuration, guarantees, support cases and full audit review remain separate upcoming modules. No real-money actions are enabled.</p>
+      <h2 style={{ fontSize: 24 }}>Agent Trust, Capital & Commission Engine</h2>
+      <p className="form-note">Manage trust badges, declared capital, verified guarantee references, capital tiers, transaction tracking, disputes, escrow-ready metadata, commission rules and revenue reports.</p>
+      <Link className="button" href="/admin/agent-trust">Open Trust & Capital Control Center <span>↗</span></Link>
+      <p className="form-note" style={{ marginTop: 12 }}>All commission figures are non-payable calculations. No wallet, custody, real escrow or financial transfer is enabled.</p>
     </div>
   </div></section>;
 }
