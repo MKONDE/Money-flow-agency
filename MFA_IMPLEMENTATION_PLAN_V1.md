@@ -125,7 +125,7 @@ New module migrations are timestamped after the existing agent verification migr
 5. 20261101133000_mfa_public_directory_online_presence.sql
 6. 20261101134000_mfa_legacy_demo_request_security_hardening.sql
 
-Before applying them to the live MFA project, reconcile the five missing migration files identified in the repository audit and validate the actual live schema.
+Before applying them to the live MFA project, reconcile the five missing operational migration files, the base foundation version mismatch and the unapplied agent-verification migration identified in the repository audit. Validate the actual live schema.
 
 ## Current status
 
