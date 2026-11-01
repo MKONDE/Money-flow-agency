@@ -78,14 +78,13 @@ The new feature branch adds these capabilities without modifying main or any CFG
 
 The connected project is named money-flow-agency and is separate from CFG. Only read-only catalog, migration-history and advisor queries were run. No new module migration was applied.
 
-The live migration history contains 12 versions. Five operational migration versions are absent from the repository migration folder:
+The live migration history contains 12 versions. Three operational migration versions are absent from the repository migration folder:
 - 20261101033516 — mfa_send_receive_requests_v1
 - 20261101033526 — mfa_request_workflow_fk_indexes
 - 20261101033713 — mfa_agent_request_status_rpc
-- 20261101102303 — mfa_rls_policy_consolidation_global_presence_v1
-- 20261101102331 — mfa_agent_profile_read_policy_consolidation_v1
+- 20261101102303 and 20261101102331 — live RLS consolidation versions. Their corresponding policy-consolidation changes are now represented in this branch by 20261101103000_mfa_rls_policy_consolidation_global_presence_v1.sql and 20261101104500_mfa_agent_profile_read_policy_consolidation_v1.sql, but the version timestamps differ and must be reconciled before migration replay.
 
-The live foundation migration is versioned 20261031140915, while the repository's base foundation file is named 202610310001; these version identifiers do not match. The repository also contains the agent verification migration 20261101120000, which is not recorded as applied in the live database. The live database also contains operational tables (service requests/events, partner services, payment partners, agent service listings, partner confirmations, receipts and service disputes) that are not fully represented by checked-in migrations. This is migration-history/schema drift. Reconcile the missing migration files before replaying the entire repository migration folder against any shared/live database. The new 20261101134000 hardening migration safely skips the optional legacy service-request tables if they are absent.
+The three operational versions listed above are not represented by their original filenames. The live foundation migration is versioned 20261031140915, while the repository's base foundation file is named 202610310001; these version identifiers do not match. The repository also contains the agent verification migration 20261101120000, which is not recorded as applied in the live database. The live database also contains operational tables (service requests/events, partner services, payment partners, agent service listings, partner confirmations, receipts and service disputes) that are not fully represented by checked-in migrations. This is migration-history/schema drift. Reconcile the missing migration files before replaying the entire repository migration folder against any shared/live database. The new 20261101134000 hardening migration safely skips the optional legacy service-request tables if they are absent.
 
 ## Security observations
 
