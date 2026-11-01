@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/site-footer";
 export const metadata: Metadata = {
   title: "Money Flow Agency | Global Agent Network",
   description: "An independent platform connecting verified agents, businesses and service partners.",
+  icons: { icon: "/mfa-logo.svg", shortcut: "/mfa-logo.svg", apple: "/mfa-logo.svg" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
