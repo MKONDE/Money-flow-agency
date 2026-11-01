@@ -65,7 +65,7 @@ for each row execute function private.mfa_guard_trust_badge_change();
 
 
 create or replace function private.mfa_guard_capital_declaration()
-returns trigger language plpgsql security definer set search_path='' as $
+returns trigger language plpgsql security definer set search_path='' as $$
 declare v_level text; v_badge_status text;
 begin
   select trust_level,badge_status into v_level,v_badge_status
@@ -82,13 +82,13 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function private.mfa_guard_capital_declaration() from public,anon,authenticated;
 create trigger mfa_capital_declaration_guard before insert or update on public.mfa_agent_capital_profiles
 for each row execute function private.mfa_guard_capital_declaration();
 
 create or replace function private.mfa_guard_guarantee_review()
-returns trigger language plpgsql security definer set search_path='' as $
+returns trigger language plpgsql security definer set search_path='' as $$
 begin
   if new.verification_status='verified' then
     if new.verified_by is null or new.verified_at is null
@@ -111,7 +111,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function private.mfa_guard_guarantee_review() from public,anon,authenticated;
 create trigger mfa_guarantee_review_guard before update on public.mfa_agent_guarantees
 for each row execute function private.mfa_guard_guarantee_review();
