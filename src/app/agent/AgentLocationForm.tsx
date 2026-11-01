@@ -7,7 +7,6 @@ export default function AgentLocationForm({agentId,initial}:{agentId:string;init
  async function save(form:FormData){
   setBusy(true);setMessage("");const supabase=createClient();
   const payload={agent_id:agentId,country_code:String(form.get("country_code")).toUpperCase(),region:String(form.get("region")||"")||null,district:String(form.get("district")||"")||null,city:String(form.get("city")||"")||null,ward:String(form.get("ward")||"")||null,neighbourhood:String(form.get("neighbourhood")||"")||null,service_address:String(form.get("service_address")||"")||null,location_type:String(form.get("location_type")),service_areas:String(form.get("service_areas")||"").split(",").map(x=>x.trim()).filter(Boolean),public_listing_consent:form.get("public_listing_consent")==="on",review_status:"pending"};
-  const {data:{user}}=await supabase.auth.getUser();
   const {data:existing}=await supabase.from("agent_location_profiles").select("id,review_status").eq("agent_id",agentId).maybeSingle();
   const result=existing?await supabase.from("agent_location_profiles").update(payload).eq("agent_id",agentId).select().single():await supabase.from("agent_location_profiles").insert(payload).select().single();
   if(result.error){setMessage("Imeshindikana kuhifadhi: "+result.error.message);}else{setLocation(result.data as Location);setMessage("Taarifa zimehifadhiwa na kutumwa kwa ukaguzi wa MFA.");}
