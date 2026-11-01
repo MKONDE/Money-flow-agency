@@ -30,10 +30,10 @@ declare
   v_verified_guarantee numeric(20,2);
 begin
   select status into v_agent_status from public.agent_profiles where id=new.agent_id;
-  if new.trust_level<>'independent_agent' and v_agent_status is distinct from 'verified' then
+  if new.badge_status='active' and new.trust_level<>'independent_agent' and v_agent_status is distinct from 'verified' then
     raise exception 'Trust levels above Independent Agent require a verified agent profile' using errcode='42501';
   end if;
-  if new.trust_level='capital_backed_agent' then
+  if new.badge_status='active' and new.trust_level='capital_backed_agent' then
     select declared_capital into v_declared from public.mfa_agent_capital_profiles where agent_id=new.agent_id;
     select coalesce(sum(g.amount),0) into v_verified_guarantee from public.mfa_agent_guarantees g
       join public.mfa_agent_capital_profiles cp on cp.agent_id=g.agent_id and cp.currency=g.currency
