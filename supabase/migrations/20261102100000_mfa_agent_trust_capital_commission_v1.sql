@@ -314,6 +314,10 @@ using (exists(select 1 from public.mfa_transactions t where t.id=transaction_id 
 create policy mfa_escrow_admin_all on public.mfa_escrow_workflows for all to authenticated
 using ((select private.current_mfa_role())='super_admin' and (select auth.jwt()->>'aal')='aal2')
 with check ((select private.current_mfa_role())='super_admin' and (select auth.jwt()->>'aal')='aal2');
+create policy mfa_escrow_customer_confirm on public.mfa_escrow_workflows for update to authenticated
+using (customer_confirmation_required=true and customer_confirmed_at is null and workflow_status='awaiting_customer_confirmation'
+  and exists(select 1 from public.mfa_transactions t where t.id=transaction_id and t.requester_id=(select auth.uid())))
+with check (customer_confirmed_at is not null and exists(select 1 from public.mfa_transactions t where t.id=transaction_id and t.requester_id=(select auth.uid())));
 
 create policy mfa_commission_rules_admin_read on public.mfa_commission_rules for select to authenticated
 using ((select private.current_mfa_role())='super_admin' and (select auth.jwt()->>'aal')='aal2');
@@ -335,6 +339,7 @@ revoke all on public.mfa_agent_trust_badges,public.mfa_agent_trust_history,publi
   public.mfa_financial_audit_events from anon,authenticated;
 
 grant select on public.mfa_agent_trust_badges to anon,authenticated;
+grant insert,update on public.mfa_agent_trust_badges to authenticated;
 grant select on public.mfa_agent_trust_history to authenticated;
 grant select on public.mfa_capital_tiers to authenticated;
 grant select,insert,update on public.mfa_agent_capital_profiles to authenticated;
@@ -350,7 +355,7 @@ grant select on public.mfa_commission_entries,public.mfa_financial_audit_events 
 revoke update on public.mfa_agent_capital_profiles from authenticated;
 grant update(currency,declared_capital,declared_transaction_float,declaration_notes) on public.mfa_agent_capital_profiles to authenticated;
 revoke update on public.mfa_transactions from authenticated;
-grant update(status,evidence_reference) on public.mfa_transactions to authenticated;
+grant update(agent_id,partner_id,service_code,country_code,currency,payment_network,amount,commissionable_amount,customer_reference,agent_reference,partner_reference,status,evidence_reference,customer_note) on public.mfa_transactions to authenticated;
 revoke insert on public.mfa_transactions from authenticated;
 grant insert(requester_id,partner_id,service_code,country_code,currency,payment_network,amount,customer_reference,customer_note,simulation_only) on public.mfa_transactions to authenticated;
 revoke update on public.mfa_transaction_disputes from authenticated;
@@ -436,7 +441,7 @@ begin
   return new;
 end; $$;
 revoke all on function private.mfa_enforce_agent_transaction_limits() from public,anon,authenticated;
-create trigger mfa_agent_transaction_limits before insert or update of agent_id,amount,currency,status
+create trigger mfa_agent_transaction_limits before insert or update of agent_id,amount,currency
 on public.mfa_transactions for each row execute function private.mfa_enforce_agent_transaction_limits();
 
 create or replace function private.mfa_validate_transaction_transition()
@@ -477,7 +482,9 @@ begin
       end if;
     else
       select user_id into v_agent_user from public.agent_profiles where id=old.agent_id;
-      if v_agent_user is distinct from auth.uid() or not (
+      if new.status='DISPUTED' and exists(select 1 from public.mfa_transaction_disputes d where d.transaction_id=old.id and d.opened_by=auth.uid() and d.dispute_status='open') then
+        null;
+      elsif v_agent_user is distinct from auth.uid() or not (
         (old.status='PENDING_AGENT' and new.status='PAYMENT_PENDING')
         or (old.status='PAYMENT_PENDING' and new.status='PAYMENT_SUBMITTED')
       ) then
@@ -566,6 +573,50 @@ end; $$;
 revoke all on function private.mfa_open_dispute_on_insert() from public,anon,authenticated;
 create trigger mfa_dispute_opened after insert on public.mfa_transaction_disputes
 for each row execute function private.mfa_open_dispute_on_insert();
+
+create or replace function private.mfa_record_dispute_update()
+returns trigger language plpgsql security definer set search_path='' as $
+begin
+  if new.dispute_status is distinct from old.dispute_status or new.resolution_note is distinct from old.resolution_note then
+    insert into public.mfa_dispute_events(dispute_id,actor_id,event_type,note)
+    values(new.id,auth.uid(),'dispute_'||new.dispute_status,new.resolution_note);
+  end if;
+  return new;
+end; $;
+revoke all on function private.mfa_record_dispute_update() from public,anon,authenticated;
+create trigger mfa_dispute_update_event after update on public.mfa_transaction_disputes
+for each row execute function private.mfa_record_dispute_update();
+
+create or replace function private.mfa_guard_escrow_update()
+returns trigger language plpgsql security definer set search_path='' as $
+declare v_admin boolean := private.current_mfa_role()='super_admin' and (select auth.jwt()->>'aal')='aal2';
+begin
+  if not v_admin then
+    if new.id is distinct from old.id or new.transaction_id is distinct from old.transaction_id
+      or new.workflow_status is distinct from old.workflow_status
+      or new.future_licensed_provider_code is distinct from old.future_licensed_provider_code
+      or new.release_conditions is distinct from old.release_conditions
+      or new.customer_confirmation_required is distinct from old.customer_confirmation_required
+      or new.dispute_status is distinct from old.dispute_status
+      or new.funds_held is distinct from old.funds_held
+      or new.release_executed is distinct from old.release_executed
+      or new.created_by is distinct from old.created_by then
+      raise exception 'Customer confirmation cannot change escrow workflow controls' using errcode='42501';
+    end if;
+    if not exists(select 1 from public.mfa_transactions t where t.id=old.transaction_id and t.requester_id=auth.uid())
+      or old.customer_confirmed_at is not null or new.customer_confirmed_at is null then
+      raise exception 'Only the transaction customer may confirm once' using errcode='42501';
+    end if;
+    new.workflow_status:='closed';
+  end if;
+  if new.funds_held is true or new.release_executed is true then
+    raise exception 'MFA V1 cannot hold funds or execute escrow releases' using errcode='42501';
+  end if;
+  return new;
+end; $;
+revoke all on function private.mfa_guard_escrow_update() from public,anon,authenticated;
+create trigger mfa_escrow_update_guard before update on public.mfa_escrow_workflows
+for each row execute function private.mfa_guard_escrow_update();
 
 create or replace function private.mfa_audit_row_change()
 returns trigger language plpgsql security definer set search_path='' as $$
