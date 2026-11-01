@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import AdminWorkspace from "./AdminWorkspace";
+import GlobalPresenceWorkspace from "./GlobalPresenceWorkspace";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +22,7 @@ export default async function AdminPortalPage() {
     </div></div></section>;
   }
 
-  const [{ count: pending }, { count: verified }, { count: suspended }, { data: requests, error: requestsError }, { data: agents, error: agentsError }] = await Promise.all([
+  const [{ count: pending }, { count: verified }, { count: suspended }, { data: requests, error: requestsError }, { data: agents, error: agentsError }, { data: representatives }, { data: offices }] = await Promise.all([
     supabase.from("agent_profiles").select("*", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("agent_profiles").select("*", { count: "exact", head: true }).eq("status", "verified"),
     supabase.from("agent_profiles").select("*", { count: "exact", head: true }).eq("status", "suspended"),
