@@ -216,7 +216,8 @@ declare
   v_remainder numeric(20,2);
   v_agent_status text;
 begin
-  if new.status<>'COMPLETED' or old.status='COMPLETED' or new.agent_id is null or new.commissionable_amount<=0 then return new; end if;
+  if new.status<>'COMPLETED' or new.agent_id is null or new.commissionable_amount<=0 then return new; end if;
+  if old.commission_calculated is true or new.commission_calculated is true then return new; end if;
   select status into v_agent_status from public.agent_profiles where id=new.agent_id;
   if v_agent_status is distinct from 'verified' then return new; end if;
 
@@ -252,7 +253,7 @@ begin
 end;
 $$;
 revoke all on function private.mfa_create_commission_entry() from public,anon,authenticated;
-create trigger mfa_transaction_commission_calculation after update of status
+create trigger mfa_transaction_commission_calculation after update of status,commissionable_amount,agent_id
 on public.mfa_transactions for each row execute function private.mfa_create_commission_entry();
 
 create or replace function private.mfa_open_dispute_on_insert()
