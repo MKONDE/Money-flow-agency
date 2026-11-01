@@ -13,7 +13,7 @@ export default async function AgentTrustCapitalAdminPage(){
   disputesResult,rulesResult,entriesResult,countriesResult,partnersResult,escrowsResult,auditResult
  ]=await Promise.all([
   sb.from("agent_profiles").select("id,brand_name,status,country_code,city,region").order("brand_name").limit(500),
-  sb.from("mfa_agent_trust_badges").select("agent_id,trust_level,badge_status,reason"),
+  sb.from("mfa_agent_trust_badges").select("agent_id,trust_level,badge_status,reason,valid_until"),
   sb.from("mfa_agent_trust_history").select("id,agent_id,previous_level,new_level,badge_status,reason,actor_id,created_at").order("created_at",{ascending:false}).limit(200),
   sb.from("mfa_agent_capital_profiles").select("agent_id,currency,declared_capital,declared_transaction_float,declaration_notes"),
   sb.from("mfa_agent_guarantees").select("id,agent_id,issuer_name,guarantee_reference,amount,currency,verification_status,verification_reason,valid_until").order("created_at",{ascending:false}).limit(200),
