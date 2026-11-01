@@ -25,10 +25,10 @@ jobs:
         run: npm install
       - name: Verify tracking-only financial safety guards
         run: |
-          grep -q "check (simulation_only = true)" supabase/migrations/20261102100000_mfa_agent_trust_capital_commission_tables.sql
-          grep -q "check (funds_held = false)" supabase/migrations/20261102100000_mfa_agent_trust_capital_commission_tables.sql
-          grep -q "check (release_executed = false)" supabase/migrations/20261102100000_mfa_agent_trust_capital_commission_tables.sql
-          grep -q "check (payable = false)" supabase/migrations/20261102100000_mfa_agent_trust_capital_commission_tables.sql
+          grep -q "check (simulation_only = true)" supabase/migrations/20261101130000_mfa_agent_trust_capital_commission_tables.sql
+          grep -q "check (funds_held = false)" supabase/migrations/20261101130000_mfa_agent_trust_capital_commission_tables.sql
+          grep -q "check (release_executed = false)" supabase/migrations/20261101130000_mfa_agent_trust_capital_commission_tables.sql
+          grep -q "check (payable = false)" supabase/migrations/20261101130000_mfa_agent_trust_capital_commission_tables.sql
       - name: Type check
         run: npm run typecheck
       - name: Lint
