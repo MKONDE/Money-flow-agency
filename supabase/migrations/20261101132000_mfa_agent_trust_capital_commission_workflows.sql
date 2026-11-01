@@ -47,7 +47,7 @@ begin
       raise exception 'Capital-Backed Agent requires declared capital and a separately verified guarantee in the declared currency' using errcode='23514';
     end if;
     if not v_has_indefinite and v_guarantee_expiry is not null and (new.valid_until is null or new.valid_until::date>v_guarantee_expiry) then
-      new.valid_until:=v_guarantee_expiry::timestamptz;
+      new.valid_until:=v_guarantee_expiry::timestamptz+interval '1 day'-interval '1 millisecond';
     end if;
   end if;
   if tg_op='UPDATE' then
