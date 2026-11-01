@@ -42,9 +42,11 @@ begin
       raise exception 'Capital-Backed Agent requires declared capital and a separately verified guarantee' using errcode='23514';
     end if;
   end if;
-  if tg_op='UPDATE' and (old.trust_level is distinct from new.trust_level or old.badge_status is distinct from new.badge_status) then
-    insert into public.mfa_agent_trust_history(agent_id,previous_level,new_level,badge_status,reason,actor_id)
-    values(new.agent_id,old.trust_level,new.trust_level,new.badge_status,new.reason,auth.uid());
+  if tg_op='UPDATE' then
+    if old.trust_level is distinct from new.trust_level or old.badge_status is distinct from new.badge_status then
+      insert into public.mfa_agent_trust_history(agent_id,previous_level,new_level,badge_status,reason,actor_id)
+      values(new.agent_id,old.trust_level,new.trust_level,new.badge_status,new.reason,auth.uid());
+    end if;
   end if;
   return new;
 end;
@@ -65,6 +67,7 @@ declare
   v_monthly numeric(20,2);
 begin
   if new.agent_id is null then return new; end if;
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(new.agent_id::text,0));
   select status into v_agent_status from public.agent_profiles where id=new.agent_id;
   if v_agent_status is distinct from 'verified' then
     raise exception 'Only verified agents can be assigned tracked transactions' using errcode='42501';
@@ -79,7 +82,7 @@ begin
   select * into v_tier from public.mfa_capital_tiers
    where enabled=true and currency=new.currency and effective_from<=now() and (effective_to is null or effective_to>now())
    and minimum_declared_capital<=v_capital.declared_capital and minimum_verified_guarantee<=v_guarantee
-   order by minimum_verified_guarantee desc,minimum_declared_capital desc,effective_from desc limit 1;
+   order by minimum_verified_guarantee desc,minimum_declared_capital desc,max_per_transaction asc,effective_from desc limit 1;
   if not found then raise exception 'No active capital tier matches this agent declaration and verified guarantee' using errcode='23514'; end if;
   if new.amount>v_tier.max_per_transaction then raise exception 'Transaction exceeds agent per-transaction limit' using errcode='23514'; end if;
 
@@ -110,10 +113,20 @@ returns trigger language plpgsql security definer set search_path='' as $$
 declare
   v_role text:=private.current_mfa_role();
   v_agent_user uuid;
+  v_agent_status text;
+  v_recent_requests integer;
 begin
   if tg_op='INSERT' then
     if new.status<>'CREATED' or new.simulation_only is not true or new.commissionable_amount<>0 then
       raise exception 'Customer transaction submissions must begin as simulation-only CREATED records' using errcode='42501';
+    end if;
+    if v_role is distinct from 'super_admin' then
+      perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(new.requester_id::text,0));
+      select count(*) into v_recent_requests from public.mfa_transactions
+        where requester_id=new.requester_id and created_at>now()-interval '1 hour';
+      if v_recent_requests>=20 then
+        raise exception 'MFA tracking request rate limit reached. Try again later.' using errcode='54000';
+      end if;
     end if;
     return new;
   end if;
@@ -153,13 +166,13 @@ begin
         raise exception 'Invalid transaction status transition' using errcode='22023';
       end if;
     else
-      select user_id into v_agent_user from public.agent_profiles where id=old.agent_id;
+      select user_id,status into v_agent_user,v_agent_status from public.agent_profiles where id=old.agent_id;
       if new.status='DISPUTED' and exists(
         select 1 from public.mfa_transaction_disputes d
         where d.transaction_id=old.id and d.opened_by=auth.uid() and d.dispute_status='open'
       ) then
         null;
-      elsif v_agent_user is distinct from auth.uid() or not (
+      elsif v_agent_user is distinct from auth.uid() or v_agent_status is distinct from 'verified' or not (
         (old.status='PENDING_AGENT' and new.status='PAYMENT_PENDING')
         or (old.status='PAYMENT_PENDING' and new.status='PAYMENT_SUBMITTED')
       ) then
@@ -310,9 +323,9 @@ returns trigger language plpgsql security definer set search_path='' as $$
 declare v_id text; v_before jsonb; v_after jsonb;
 begin
   if tg_op='DELETE' then
-    v_id:=coalesce(to_jsonb(old)->>'id',to_jsonb(old)->>'agent_id'); v_before:=to_jsonb(old);
+    v_id:=coalesce(to_jsonb(old)->>'id',to_jsonb(old)->>'agent_id',to_jsonb(old)->>'country_code'); v_before:=to_jsonb(old);
   elsif tg_op='UPDATE' then
-    v_id:=coalesce(to_jsonb(new)->>'id',to_jsonb(new)->>'agent_id'); v_before:=to_jsonb(old); v_after:=to_jsonb(new);
+    v_id:=coalesce(to_jsonb(new)->>'id',to_jsonb(new)->>'agent_id',to_jsonb(new)->>'country_code'); v_before:=to_jsonb(old); v_after:=to_jsonb(new);
   else
     v_id:=coalesce(to_jsonb(new)->>'id',to_jsonb(new)->>'agent_id'); v_after:=to_jsonb(new);
   end if;
