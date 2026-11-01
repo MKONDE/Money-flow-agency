@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const links = [
@@ -12,8 +13,7 @@ export function SiteHeader() {
     <header className="site-header">
       <div className="container nav-wrap">
         <Link href="/" className="brand" aria-label="Money Flow Agency home">
-          <span className="brand-mark">M</span>
-          <span className="brand-copy"><strong>MONEY FLOW</strong><small>AGENCY</small></span>
+          <Image src="/mfa-logo.svg" alt="Money Flow Agency" width={62} height={62} priority />
         </Link>
         <nav className="desktop-nav" aria-label="Main navigation">
           {links.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}
