@@ -35,8 +35,9 @@ begin
   end if;
   if new.trust_level='capital_backed_agent' then
     select declared_capital into v_declared from public.mfa_agent_capital_profiles where agent_id=new.agent_id;
-    select coalesce(sum(amount),0) into v_verified_guarantee from public.mfa_agent_guarantees
-      where agent_id=new.agent_id and verification_status='verified'
+    select coalesce(sum(g.amount),0) into v_verified_guarantee from public.mfa_agent_guarantees g
+      join public.mfa_agent_capital_profiles cp on cp.agent_id=g.agent_id and cp.currency=g.currency
+      where g.agent_id=new.agent_id and g.verification_status='verified'
       and (valid_from is null or valid_from<=current_date) and (valid_until is null or valid_until>=current_date);
     if coalesce(v_declared,0)<=0 or v_verified_guarantee<=0 then
       raise exception 'Capital-Backed Agent requires declared capital and a separately verified guarantee' using errcode='23514';
@@ -88,7 +89,7 @@ begin
 
   select coalesce(sum(t.amount),0) into v_pending from public.mfa_transactions t
    where t.agent_id=new.agent_id and t.currency=new.currency
-   and t.status in ('PENDING_AGENT','PAYMENT_PENDING','PAYMENT_SUBMITTED','UNDER_REVIEW','CONFIRMED','DISPUTED')
+   and t.status in ('CREATED','PENDING_AGENT','PAYMENT_PENDING','PAYMENT_SUBMITTED','UNDER_REVIEW','CONFIRMED','DISPUTED')
    and (new.id is null or t.id<>new.id);
   if v_pending+new.amount>v_tier.max_pending_exposure then raise exception 'Agent pending exposure limit exceeded' using errcode='23514'; end if;
 
@@ -370,7 +371,7 @@ for each row execute function private.mfa_reject_immutable_mutation();
 
 create or replace view public.mfa_agent_exposure_summary with (security_invoker=true) as
 select agent_id,currency,
-  coalesce(sum(amount) filter(where status in ('PENDING_AGENT','PAYMENT_PENDING','PAYMENT_SUBMITTED','UNDER_REVIEW','CONFIRMED','DISPUTED')),0) as pending_exposure,
+  coalesce(sum(amount) filter(where status in ('CREATED','PENDING_AGENT','PAYMENT_PENDING','PAYMENT_SUBMITTED','UNDER_REVIEW','CONFIRMED','DISPUTED')),0) as pending_exposure,
   coalesce(sum(amount) filter(where created_at>=date_trunc('day',now()) and status not in ('REJECTED','CANCELLED','EXPIRED')),0) as daily_volume,
   coalesce(sum(amount) filter(where created_at>=date_trunc('month',now()) and status not in ('REJECTED','CANCELLED','EXPIRED')),0) as monthly_volume,
   count(*) filter(where status in ('PENDING_AGENT','PAYMENT_PENDING','PAYMENT_SUBMITTED','UNDER_REVIEW','CONFIRMED','DISPUTED')) as pending_transaction_count
