@@ -8,7 +8,7 @@ type Country={country_code:string;country_name:string;default_currency:string;su
 type Escrow={id:string;transaction_id:string;workflow_status:string;release_conditions:string;customer_confirmed_at:string|null;dispute_status:string;funds_held:boolean;release_executed:boolean};
 const statusLabels=["CREATED","PENDING_AGENT","PAYMENT_PENDING","PAYMENT_SUBMITTED","UNDER_REVIEW","CONFIRMED","COMPLETED","REJECTED","DISPUTED","CANCELLED","EXPIRED"];
 export default function CustomerTransactionWorkspace({initial,history,disputes,escrows,countries}:{initial:Tx[];history:Event[];disputes:Dispute[];escrows:Escrow[];countries:Country[]}){
- const [rows,setRows]=useState(initial),[events,setEvents]=useState(history),[disputeRows,setDisputeRows]=useState(disputes);
+ const [rows,setRows]=useState(initial),[events,setEvents]=useState(history),[disputeRows,setDisputeRows]=useState(disputes),[escrowRows,setEscrowRows]=useState(escrows);
  const [busy,setBusy]=useState(false),[notice,setNotice]=useState("");
  async function create(form:FormData){
   setBusy(true);setNotice("");
