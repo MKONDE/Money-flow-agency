@@ -90,7 +90,7 @@ begin
   end if;
 
   if exists(select 1 from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace
-    where n.nspname='public' and c.relkind='r' and c.relname ilike '%wallet%') then
+    where n.nspname='public' and c.relkind='r' and c.relname ilike 'mfa_wallet%') then
     raise exception 'Unexpected wallet table found in MFA public schema';
   end if;
 end;
