@@ -6,11 +6,12 @@ import AgentLocationForm from "./AgentLocationForm";
 import AgentCapitalDeclarationForm from "./AgentCapitalDeclarationForm";
 import AgentTrackedTransactions from "./AgentTrackedTransactions";
 import AgentPresenceToggle from "./AgentPresenceToggle";
+import AgentBrandingForm from "./AgentBrandingForm";
 export const dynamic="force-dynamic";
 export default async function AgentPortalPage(){
  if(!process.env.NEXT_PUBLIC_SUPABASE_URL||!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)redirect("/login?message=setup_required");
  const supabase=await createClient();const {data:{user}}=await supabase.auth.getUser();if(!user)redirect("/login");
- const {data:agent}=await supabase.from("agent_profiles").select("id,brand_name,status,description,country_code,region,city,services,transaction_enabled,is_online,public_contact_consent").eq("user_id",user.id).maybeSingle();if(!agent)redirect("/become-agent");
+ const {data:agent}=await supabase.from("agent_profiles").select("id,brand_name,status,description,country_code,region,city,services,transaction_enabled,is_online,public_contact_consent,logo_url").eq("user_id",user.id).maybeSingle();if(!agent)redirect("/become-agent");
  const [{data:location},{data:capital},{data:guarantees},{data:trust},{data:requests},{data:transactions},{data:commissions}]=await Promise.all([
   supabase.from("agent_location_profiles").select("country_code,region,district,city,ward,neighbourhood,service_address,location_type,service_areas,public_listing_consent,review_status").eq("agent_id",agent.id).maybeSingle(),
   supabase.from("mfa_agent_capital_profiles").select("currency,declared_capital,declared_transaction_float,declaration_notes").eq("agent_id",agent.id).maybeSingle(),
@@ -34,6 +35,7 @@ export default async function AgentPortalPage(){
   <div className="content-card" style={{marginTop:22}}><h2 style={{fontSize:24}}>Commission calculation history</h2><p className="form-note">Calculation records only. These amounts are not a payable balance and cannot be withdrawn.</p>{commissionTotals.map(([currency,total])=><div className="portal-tile" key={currency}><strong>Calculated agent commission · {currency}</strong><span style={{fontSize:24,fontWeight:800}}>{total.toLocaleString(undefined,{maximumFractionDigits:2})}</span></div>)}{(commissions??[]).map(x=><p className="form-note" key={x.id}>{x.currency} {Number(x.agent_commission).toLocaleString()} · {new Date(x.calculated_at).toLocaleString()}</p>)}</div>
   <div className="content-card" style={{marginTop:22}}><h2 style={{fontSize:24}}>Your service requests</h2><p className="form-note">Requests assigned to your agent account. These remain demo service requests.</p><AgentRequests requests={requests??[]}/></div>
   <div className="content-card" style={{marginTop:22}}><h2 style={{fontSize:24}}>Agent location and service coverage</h2><AgentLocationForm agentId={agent.id} initial={location??null}/></div>
+  <div className="content-card" style={{marginTop:22}}><h2 style={{fontSize:24}}>Business branding</h2><AgentBrandingForm agentId={agent.id} initialLogo={agent.logo_url}/></div>
   <div className="content-card" style={{marginTop:22}}><h2 style={{fontSize:24}}>Your profile</h2><p>{agent.description||"Add a description to your profile."}</p><p className="form-note">Services: {(agent.services??[]).join(" · ")||"Not yet selected"}</p><Link className="text-link" href="/help">Get support →</Link></div>
  </div></section>;
 }
