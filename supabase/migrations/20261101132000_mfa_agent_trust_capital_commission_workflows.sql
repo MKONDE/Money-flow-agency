@@ -176,6 +176,7 @@ declare
   v_agent_user uuid;
   v_agent_status text;
   v_recent_requests integer;
+  v_customer_dispute boolean:=false;
 begin
   if tg_op='INSERT' then
     if new.status<>'CREATED' or new.simulation_only is not true or new.commissionable_amount<>0 then
@@ -196,7 +197,13 @@ begin
     raise exception 'Only an AAL2 Super Admin may assign or reassign an agent' using errcode='42501';
   end if;
 
-  if not (v_role='super_admin' and (select auth.jwt()->>'aal')='aal2') then
+  if new.status='DISPUTED' then
+    select exists(select 1 from public.mfa_transaction_disputes d
+      where d.transaction_id=old.id and d.opened_by=auth.uid() and d.dispute_status='open')
+    into v_customer_dispute;
+  end if;
+
+  if not (v_role='super_admin' and (select auth.jwt()->>'aal')='aal2') and not v_customer_dispute then
     select user_id,status into v_agent_user,v_agent_status from public.agent_profiles where id=old.agent_id;
     if v_agent_user is distinct from auth.uid() or v_agent_status is distinct from 'verified' then
       raise exception 'Only the verified assigned agent may update tracking progress' using errcode='42501';
