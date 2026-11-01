@@ -74,6 +74,21 @@ begin
   if not exists(select 1 from pg_catalog.pg_policy where polname='mfa_transactions_admin_all') then
     raise exception 'AAL2 Super Admin transaction policy is missing';
   end if;
+  if to_regclass('public.service_requests') is not null then
+    if has_table_privilege('anon','public.service_requests','SELECT')
+      or has_table_privilege('anon','public.service_requests','INSERT')
+      or has_table_privilege('anon','public.service_requests','UPDATE') then
+      raise exception 'Anon still has privileges on legacy service_requests';
+    end if;
+    if exists(select 1 from pg_catalog.pg_proc p join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+      where n.nspname='public' and p.proname='agent_update_service_request' and p.prosecdef) then
+      raise exception 'Legacy agent request RPC is still SECURITY DEFINER';
+    end if;
+    if not exists(select 1 from pg_catalog.pg_policy where polname='service_requests_assigned_agent_update') then
+      raise exception 'Legacy assigned-agent update RLS policy is missing';
+    end if;
+  end if;
+
   if exists(select 1 from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace
     where n.nspname='public' and c.relkind='r' and c.relname ilike '%wallet%') then
     raise exception 'Unexpected wallet table found in MFA public schema';
