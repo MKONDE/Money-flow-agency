@@ -44,8 +44,8 @@
 - [x] Prevent agents from changing verification state or transaction-enabled flag through user grants.
 - [ ] Provision dedicated MFA Supabase project and apply migration.
 - [ ] Configure email confirmation and administrator MFA.
-- [ ] Add controlled Super Admin provisioning and review-action server functions.
-- [ ] Run migration validation, typecheck, lint, build and security tests.
+- [x] Add Super Admin-only AAL2 agent review RPC, server action and Admin review UI.\n- [ ] Add controlled Super Admin account provisioning procedure.
+- [ ] Apply and validate all migrations in the dedicated MFA Supabase project; run typecheck, lint, build and security tests.
 
 ### Phase 2 — Public website
 - [x] Responsive home page.
@@ -72,8 +72,8 @@
 - [x] Super Admin route protected by role and AAL2 check.
 - [x] Initial dashboard counts.
 - [x] Verification event table.
-- [ ] Admin approve/reject/suspend/request-information workflows.
-- [ ] Evidence management, decision reasons and complete audit trail.
+- [x] Admin approve/reject/suspend/request-information workflow (RPC, server action, UI; migration pending live application).
+- [x] Capture decision reasons, internal evidence references, verification events and audit-log entries in the review RPC.\n- [ ] Evidence file storage and complete audit review UI.
 - [ ] Trust Badge UI and profile branding.
 - [ ] Agent requests, transaction references, commission statements, support and security settings.
 - [ ] Country/Regional Manager scoped permissions and tests.
@@ -127,6 +127,6 @@ Until legal and banking approval is documented, keep guarantee functions in sand
 - Next.js + Supabase foundation: committed.
 - Public pages and initial agent application: committed.
 - Initial database migration and RLS: committed, not yet applied to a live Supabase project.
-- Agent/Admin portal shells: committed, not yet runtime-tested.
-- CI validation: pending.
+- Agent/Admin portal shells and initial Super Admin verification workflow: committed; live Supabase migration and runtime validation pending.
+- CI: earlier run failed before dependency installation because setup-node npm cache required a lockfile; cache configuration corrected and new run pending.
 - Production deployment and merge: not performed.
