@@ -34,6 +34,7 @@ export function AgentApplicationForm() {
     finally{setBusy(false);}
   }
   return <form className="content-card" onSubmit={submit}>
+    <div className="portal-tile" style={{marginBottom:18}}><strong>Agent activation requirement</strong><span>Submitting this application does not activate an agent account. After MFA reviews your identity and application, you must submit verifiable CFG Supply of at least USD 50 equivalent. Only after both checks are approved will your operational status become ACTIVE.</span></div>
     <div className="form-grid">
       <div className="field"><label htmlFor="full_name">Full name *</label><input id="full_name" name="full_name" required autoComplete="name"/></div>
       <div className="field"><label htmlFor="agent_type">Applicant type *</label><select id="agent_type" name="agent_type"><option value="individual">Individual agent</option><option value="business">Registered business</option></select></div>
@@ -51,7 +52,7 @@ export function AgentApplicationForm() {
       <div className="field full"><label>Services you provide</label><div className="check-grid">{serviceOptions.map(v=><label className="check-option" key={v}><input type="checkbox" name="services" value={v}/>{v}</label>)}</div></div>
       <div className="field full"><label>Payment networks you support (directory information only)</label><div className="check-grid">{networkOptions.map(v=><label className="check-option" key={v}><input type="checkbox" name="payment_networks" value={v}/>{v}</label>)}</div></div>
     </div>
-    <p className="form-note" style={{marginTop:18}}>Submitting an application does not make you a verified agent or authorize financial transactions. MFA will review the application. You can add an HTTPS logo URL from your agent portal after signing in. Image-file upload requires a later Storage bucket setup.</p>
+    <p className="form-note" style={{marginTop:18}}>Submitting an application does not make you a verified agent or authorize financial transactions. MFA will review the application and separately verify the minimum USD 50 equivalent CFG Supply before activation. You can add an HTTPS logo URL from your agent portal after signing in. Image-file upload requires a later Storage bucket setup.</p>
     {error&&<p className="form-error" role="alert">{error}</p>}{message&&<p className="form-success" role="status">{message}</p>}
     <button className="button form-submit" type="submit" disabled={busy}>{busy?"Submitting…":"Submit agent application"} <span>↗</span></button>
   </form>;
