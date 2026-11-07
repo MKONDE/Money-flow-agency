@@ -13,7 +13,8 @@ begin
     ('mfa_capital_tiers'),('mfa_agent_capital_profiles'),('mfa_agent_guarantees'),
     ('mfa_transactions'),('mfa_transaction_status_history'),('mfa_transaction_disputes'),
     ('mfa_dispute_events'),('mfa_escrow_workflows'),('mfa_commission_rules'),
-    ('mfa_commission_entries'),('mfa_financial_audit_events')
+    ('mfa_commission_entries'),('mfa_financial_audit_events'),
+    ('mfa_referral_commission_settings'),('mfa_referral_commission_history'),('mfa_referral_commission_entries')
   ) as t(table_name)
   where not exists(select 1 from information_schema.tables i where i.table_schema='public' and i.table_name=t.table_name);
   if v_missing is not null then raise exception 'Missing MFA module tables: %',v_missing; end if;
