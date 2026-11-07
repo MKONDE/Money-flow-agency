@@ -4,7 +4,7 @@
 
 alter table public.agent_profiles
   add column if not exists referral_code text,
-  add column if not exists referred_by_agent_id uuid references public.agent_profiles(id) on delete set null,
+  add column if not exists referred_by_agent_id uuid references public.agent_profiles(id) on delete restrict,
   add column if not exists referral_activated_at timestamptz,
   add column if not exists referral_duration_months integer;
 
