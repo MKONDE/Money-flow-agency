@@ -12,7 +12,7 @@ type Supply = {
   last_checked_at:string|null;
 }|null;
 
-export default function AgentCfgSupplyForm({initial}:{initial:Supply}){
+export default function AgentCfgSupplyForm({initial,agentStatus}:{initial:Supply;agentStatus:string}){
   const router=useRouter();
   const [row,setRow]=useState<Supply>(initial);
   const [busy,setBusy]=useState(false);
@@ -38,10 +38,12 @@ export default function AgentCfgSupplyForm({initial}:{initial:Supply}){
     setBusy(false);
   }
   const status=row?.verification_status??"not_submitted";
+  const isActive=agentStatus==="verified"&&status==="verified"&&Number(row?.verified_supply_usd)>=50;
+  const operationalStatus=isActive?"ACTIVE":agentStatus==="suspended"||status==="suspended"?"SUSPENDED":agentStatus!=="verified"?"PENDING MFA VERIFICATION":status==="rejected"?"SUPPLY REJECTED":"PENDING CFG SUPPLY VERIFICATION";
   return <div style={{display:"grid",gap:14}}>
     <div className="portal-tile">
       <strong>Minimum CFG Supply · USD 50</strong>
-      <span>Agent account status: <b>{status==="verified"&&Number(row?.verified_supply_usd)>=50?"ELIGIBLE — subject to agent verification":"NOT ACTIVE"}</b></span>
+      <span>Agent account status: <b>{operationalStatus}</b></span>
       {row&&<span>Submission: {row.claimed_supply_usd.toLocaleString()} USD equivalent · {status.replaceAll("_"," ").toUpperCase()}</span>}
       {row?.verified_supply_usd!==null&&row?.verified_supply_usd!==undefined&&<span>Verified CFG Supply: {row.verified_supply_usd.toLocaleString()} USD equivalent</span>}
       {row?.verification_reason&&<span>Admin note: {row.verification_reason}</span>}
