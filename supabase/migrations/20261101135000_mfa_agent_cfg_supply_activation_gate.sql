@@ -187,7 +187,7 @@ begin
     or private.current_mfa_role() is distinct from 'super_admin' then
     raise exception 'AAL2 Super Admin session required' using errcode = '42501';
   end if;
-  if p_action not in ('verify', 'reject', 'suspend') then
+  if p_action is null or p_action not in ('verify', 'reject', 'suspend') then
     raise exception 'Unsupported CFG Supply review action' using errcode = '22023';
   end if;
   if p_action = 'verify' and (
