@@ -11,7 +11,7 @@ export default async function AgentTrustCapitalAdminPage(){
  const {data:aal}=await sb.auth.mfa.getAuthenticatorAssuranceLevel();if(aal?.currentLevel!=="aal2")redirect("/admin");
  const [
   agentsResult,badgesResult,trustHistoryResult,capitalResult,guaranteesResult,tiersResult,transactionsResult,statusHistoryResult,exposuresResult,
-  disputesResult,rulesResult,entriesResult,countriesResult,partnersResult,escrowsResult,auditResult
+  disputesResult,rulesResult,entriesResult,countriesResult,partnersResult,escrowsResult,auditResult,referralSettingsResult
  ]=await Promise.all([
   sb.from("agent_profiles").select("id,brand_name,status,country_code,city,region").order("brand_name").limit(500),
   sb.from("mfa_agent_trust_badges").select("agent_id,trust_level,badge_status,reason,valid_until"),
@@ -28,7 +28,8 @@ export default async function AgentTrustCapitalAdminPage(){
   sb.from("mfa_country_settings").select("country_code,country_name,default_currency,supported_currencies,enabled").order("country_name"),
   sb.from("business_partners").select("id,display_name,legal_name,contract_status,country_code").order("display_name").limit(200),
   sb.from("mfa_escrow_workflows").select("id,transaction_id,workflow_status,release_conditions,customer_confirmed_at,dispute_status,funds_held,release_executed").order("created_at",{ascending:false}).limit(100),
-  sb.from("mfa_financial_audit_events").select("id,table_name,record_id,operation,created_at").order("created_at",{ascending:false}).limit(100)
+  sb.from("mfa_financial_audit_events").select("id,table_name,record_id,operation,created_at").order("created_at",{ascending:false}).limit(100),
+  sb.from("mfa_referral_commission_settings").select("company_share_reward_pct,duration_months,enabled,effective_from").eq("singleton",true).maybeSingle()
  ]);
  const errors=[agentsResult.error,badgesResult.error,trustHistoryResult.error,capitalResult.error,guaranteesResult.error,tiersResult.error,transactionsResult.error,statusHistoryResult.error,exposuresResult.error,disputesResult.error,rulesResult.error,entriesResult.error,countriesResult.error,partnersResult.error,escrowsResult.error,auditResult.error,referralSettingsResult.error].filter(Boolean);
  return <section className="content-section"><div className="container">
