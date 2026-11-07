@@ -5,7 +5,8 @@
 alter table public.agent_profiles
   add column if not exists referral_code text,
   add column if not exists referred_by_agent_id uuid references public.agent_profiles(id) on delete set null,
-  add column if not exists referral_activated_at timestamptz;
+  add column if not exists referral_activated_at timestamptz,
+  add column if not exists referral_duration_months integer;
 
 create or replace function private.mfa_generate_agent_referral_code()
 returns trigger language plpgsql security definer set search_path = '' as $$
@@ -43,6 +44,9 @@ begin
     else
       raise exception 'Agent inviter attribution is immutable' using errcode = '42501';
     end if;
+  end if;
+  if old.referral_duration_months is not null and new.referral_duration_months is distinct from old.referral_duration_months then
+    raise exception 'Referral duration snapshot is immutable' using errcode = '42501';
   end if;
   if old.referral_activated_at is not null and new.referral_activated_at is distinct from old.referral_activated_at then
     raise exception 'Referral activation date is immutable' using errcode = '42501';
@@ -101,14 +105,18 @@ create or replace function private.mfa_set_referral_activation()
 returns trigger language plpgsql security definer set search_path = '' as $$
 declare
   v_agent_id uuid;
+  v_duration_months integer;
 begin
   if tg_table_name = 'agent_profiles' then
     v_agent_id := new.id;
   else
     v_agent_id := new.agent_id;
   end if;
+  select duration_months into v_duration_months
+  from public.mfa_referral_commission_settings where singleton = true;
   update public.agent_profiles a
-  set referral_activated_at = now()
+  set referral_activated_at = now(),
+      referral_duration_months = coalesce(v_duration_months, 12)
   where a.id = v_agent_id
     and a.referral_activated_at is null
     and a.status = 'verified'
@@ -267,7 +275,7 @@ begin
   end if;
   select * into v_setting from public.mfa_referral_commission_settings where singleton = true;
   if not found or not v_setting.enabled or now() < v_referred.referral_activated_at then return new; end if;
-  v_eligible_until := v_referred.referral_activated_at + make_interval(months => v_setting.duration_months);
+  v_eligible_until := v_referred.referral_activated_at + make_interval(months => coalesce(v_referred.referral_duration_months, 12));
   if now() >= v_eligible_until or new.company_revenue <= 0 then return new; end if;
   v_reward := round(new.company_revenue * v_setting.company_share_reward_pct / 100, 2);
   if v_reward <= 0 then return new; end if;
@@ -280,7 +288,7 @@ begin
     new.commission_pool, new.company_revenue, v_setting.company_share_reward_pct, v_reward,
     new.company_revenue - v_reward, v_referred.referral_activated_at, v_eligible_until,
     jsonb_build_object('basis', 'company_revenue', 'company_share_reward_pct', v_setting.company_share_reward_pct,
-      'duration_months', v_setting.duration_months, 'effective_from', v_setting.effective_from,
+      'duration_months', coalesce(v_referred.referral_duration_months, 12), 'effective_from', v_setting.effective_from,
       'funding_source', 'mfa_company_share_only', 'agent_share_pct_unchanged', true,
       'operations_risk_reserve_unchanged', true),
     false
