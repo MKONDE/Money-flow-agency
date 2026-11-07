@@ -12,7 +12,8 @@ export function AgentApplicationForm() {
   const [error,setError]=useState("");
   async function submit(event:FormEvent<HTMLFormElement>){
     event.preventDefault();setBusy(true);setError("");setMessage("");
-    const form=new FormData(event.currentTarget);
+    const formElement=event.currentTarget;
+    const form=new FormData(formElement);
     const selected=(name:string)=>form.getAll(name).map(String);
     try{
       const supabase=createClient();
@@ -30,7 +31,7 @@ export function AgentApplicationForm() {
       });
       if(authError)throw authError;
       setMessage("Your account and agent application have been submitted. Check your email to confirm your account. Your listing remains pending until MFA reviews and approves it.");
-      event.currentTarget.reset();
+      formElement.reset();
     }catch(e){setError(e instanceof Error?e.message:"We could not submit your application. Please try again.");}
     finally{setBusy(false);}
   }
