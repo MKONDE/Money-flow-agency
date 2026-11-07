@@ -72,10 +72,10 @@ require(
 require(
     "supabase/migrations/20261101136000_mfa_direct_agent_referral_commission_v1.sql",
     {
-        "referral default is 10 percent of company share": r"company_share_reward_pct\\s+numeric\\(7,4\\)\\s+not\\s+null\\s+default\\s+10",
-        "referral default duration is 12 months": r"duration_months\\s+integer\\s+not\\s+null\\s+default\\s+12",
-        "referral calculations are funded from company share only": r"'funding_source'\\s*,\\s*'mfa_company_share_only'",
-        "referral entries remain non-payable": r"payable\\s+boolean\\s+not\\s+null\\s+default\\s+false\\s+check\\s*\\(\\s*payable\\s*=\\s*false",
+        "referral default is 10 percent of company share": r"company_share_reward_pct\s+numeric\(7,4\)\s+not\s+null\s+default\s+10",
+        "referral default duration is 12 months": r"duration_months\s+integer\s+not\s+null\s+default\s+12",
+        "referral calculations are funded from company share only": r"'funding_source'\s*,\s*'mfa_company_share_only'",
+        "referral entries remain non-payable": r"payable\s+boolean\s+not\s+null\s+default\s+false\s+check\s*\(\s*payable\s*=\s*false",
         "AAL2 admin RPC protects referral settings": r"mfa_update_referral_commission_settings",
         "direct referral attribution is captured on agent signup": r"zz_mfa_capture_agent_referral",
     },
