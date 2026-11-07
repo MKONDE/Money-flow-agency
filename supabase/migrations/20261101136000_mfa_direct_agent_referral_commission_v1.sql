@@ -57,7 +57,7 @@ $$;
 revoke all on function private.mfa_guard_agent_referral_attribution() from public, anon, authenticated;
 drop trigger if exists mfa_agent_referral_attribution_guard on public.agent_profiles;
 create trigger mfa_agent_referral_attribution_guard
-before update of referral_code, referred_by_agent_id, referral_activated_at on public.agent_profiles
+before update of referral_code, referred_by_agent_id, referral_activated_at, referral_duration_months on public.agent_profiles
 for each row execute function private.mfa_guard_agent_referral_attribution();
 
 create or replace function private.mfa_capture_agent_referral()
