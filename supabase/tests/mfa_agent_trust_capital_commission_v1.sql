@@ -26,9 +26,9 @@ begin
     and c.relname in ('mfa_country_settings','mfa_agent_trust_badges','mfa_agent_trust_history',
       'mfa_capital_tiers','mfa_agent_capital_profiles','mfa_agent_guarantees','mfa_transactions',
       'mfa_transaction_status_history','mfa_transaction_disputes','mfa_dispute_events',
-      'mfa_escrow_workflows','mfa_commission_rules','mfa_commission_entries','mfa_financial_audit_events')
+      'mfa_escrow_workflows','mfa_commission_rules','mfa_commission_entries','mfa_financial_audit_events','mfa_referral_commission_settings',\n      'mfa_referral_commission_history','mfa_referral_commission_entries')
     and c.relrowsecurity;
-  if v_count<>14 then raise exception 'Expected RLS on 14 MFA module tables; found %',v_count; end if;
+  if v_count<>17 then raise exception 'Expected RLS on 17 MFA module tables; found %',v_count; end if;
 
   if not exists(select 1 from public.mfa_commission_rules
     where scope_type='global' and scope_key='*' and currency is null
@@ -134,6 +134,25 @@ begin
   if not has_function_privilege('authenticated','public.mfa_submit_agent_cfg_supply(numeric,text)','EXECUTE')
     or not has_function_privilege('authenticated','public.mfa_review_agent_cfg_supply(uuid,text,numeric,text,text)','EXECUTE') then
     raise exception 'CFG Supply submission/review RPC permissions are missing';
+  end if;
+
+  if not exists(select 1 from public.mfa_referral_commission_settings
+    where singleton and company_share_reward_pct=10 and duration_months=12 and enabled) then
+    raise exception 'Approved default referral rule (10% of company share for 12 months) is missing';
+  end if;
+  if has_table_privilege('authenticated','public.mfa_referral_commission_entries','INSERT')
+    or has_table_privilege('authenticated','public.mfa_referral_commission_entries','UPDATE')
+    or has_table_privilege('authenticated','public.mfa_referral_commission_entries','DELETE') then
+    raise exception 'Referral commission entries must be read-only for authenticated users';
+  end if;
+  if not exists(select 1 from pg_catalog.pg_trigger where tgname='mfa_commission_referral_calculation' and not tgisinternal) then
+    raise exception 'Direct-agent referral commission calculation trigger is missing';
+  end if;
+  if not exists(select 1 from pg_catalog.pg_trigger where tgname='zz_mfa_capture_agent_referral' and not tgisinternal) then
+    raise exception 'Agent signup referral attribution trigger is missing';
+  end if;
+  if not has_function_privilege('authenticated','public.mfa_update_referral_commission_settings(numeric,integer,boolean)','EXECUTE') then
+    raise exception 'AAL2 referral commission settings RPC is missing';
   end if;
 
   if exists(select 1 from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace
