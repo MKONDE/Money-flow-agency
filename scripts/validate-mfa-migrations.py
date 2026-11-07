@@ -60,10 +60,10 @@ require(
 require(
     "supabase/migrations/20261101135000_mfa_agent_cfg_supply_activation_gate.sql",
     {
-        "CFG Supply verification cannot approve less than USD 50": r"p_verified_supply_usd\\s*<\\s*50",
-        "only verified USD 50 supply makes an agent active": r"verified_supply_usd\\s*>=\\s*50",
+        "CFG Supply verification cannot approve less than USD 50": r"p_verified_supply_usd\s*<\s*50",
+        "only verified USD 50 supply makes an agent active": r"verified_supply_usd\s*>=\s*50",
         "agent transaction assignment requires verified minimum supply": r"mfa_agent_minimum_cfg_supply_gate",
-        "CFG Supply review requires AAL2": r"auth\\.jwt\\(\\).*aal.*aal2",
+        "CFG Supply review requires AAL2": r"auth\.jwt\\(\\).*aal.*aal2",
         "CFG Supply evidence is reviewed through controlled RPC": r"mfa_review_agent_cfg_supply",
         "agent submission is recorded as pending": r"'pending'",
     },
