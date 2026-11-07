@@ -102,6 +102,39 @@ begin
     end if;
   end if;
 
+
+  if not exists(select 1 from information_schema.tables
+    where table_schema='public' and table_name='mfa_agent_cfg_supply') then
+    raise exception 'Agent CFG Supply verification table is missing';
+  end if;
+  if not exists(select 1 from pg_catalog.pg_class c
+    join pg_catalog.pg_namespace n on n.oid=c.relnamespace
+    where n.nspname='public' and c.relname='mfa_agent_cfg_supply' and c.relrowsecurity) then
+    raise exception 'Agent CFG Supply RLS is missing';
+  end if;
+  if has_table_privilege('authenticated','public.mfa_agent_cfg_supply','UPDATE') then
+    raise exception 'Agents must not directly update verified CFG Supply fields';
+  end if;
+  if not exists(select 1 from pg_catalog.pg_constraint c
+    join pg_catalog.pg_class t on t.oid=c.conrelid
+    join pg_catalog.pg_namespace n on n.oid=t.relnamespace
+    where n.nspname='public' and t.relname='mfa_agent_cfg_supply'
+      and pg_catalog.pg_get_constraintdef(c.oid) ilike '%verified_supply_usd >= 50%') then
+    raise exception 'Minimum USD 50 verified CFG Supply constraint is missing';
+  end if;
+  if not exists(select 1 from pg_catalog.pg_trigger
+    where tgname='mfa_agent_minimum_cfg_supply_gate' and not tgisinternal) then
+    raise exception 'Agent transaction minimum CFG Supply gate is missing';
+  end if;
+  if not exists(select 1 from pg_catalog.pg_views
+    where schemaname='public' and viewname='mfa_agent_operational_status') then
+    raise exception 'Agent operational activation status view is missing';
+  end if;
+  if not has_function_privilege('authenticated','public.mfa_submit_agent_cfg_supply(numeric,text)','EXECUTE')
+    or not has_function_privilege('authenticated','public.mfa_review_agent_cfg_supply(uuid,text,numeric,text,text)','EXECUTE') then
+    raise exception 'CFG Supply submission/review RPC permissions are missing';
+  end if;
+
   if exists(select 1 from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid=c.relnamespace
     where n.nspname='public' and c.relkind='r' and c.relname ilike 'mfa_wallet%') then
     raise exception 'Unexpected wallet table found in MFA public schema';
