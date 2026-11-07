@@ -2,6 +2,7 @@ import Link from "next/link";
 import {redirect} from "next/navigation";
 import {createClient} from "@/lib/supabase/server";
 import AgentTrustCapitalWorkspace from "./AgentTrustCapitalWorkspace";
+import ReferralCommissionSettings from "./ReferralCommissionSettings";
 export const dynamic="force-dynamic";
 export default async function AgentTrustCapitalAdminPage(){
  if(!process.env.NEXT_PUBLIC_SUPABASE_URL||!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)redirect("/login?message=setup_required");
@@ -29,12 +30,13 @@ export default async function AgentTrustCapitalAdminPage(){
   sb.from("mfa_escrow_workflows").select("id,transaction_id,workflow_status,release_conditions,customer_confirmed_at,dispute_status,funds_held,release_executed").order("created_at",{ascending:false}).limit(100),
   sb.from("mfa_financial_audit_events").select("id,table_name,record_id,operation,created_at").order("created_at",{ascending:false}).limit(100)
  ]);
- const errors=[agentsResult.error,badgesResult.error,trustHistoryResult.error,capitalResult.error,guaranteesResult.error,tiersResult.error,transactionsResult.error,statusHistoryResult.error,exposuresResult.error,disputesResult.error,rulesResult.error,entriesResult.error,countriesResult.error,partnersResult.error,escrowsResult.error,auditResult.error].filter(Boolean);
+ const errors=[agentsResult.error,badgesResult.error,trustHistoryResult.error,capitalResult.error,guaranteesResult.error,tiersResult.error,transactionsResult.error,statusHistoryResult.error,exposuresResult.error,disputesResult.error,rulesResult.error,entriesResult.error,countriesResult.error,partnersResult.error,escrowsResult.error,auditResult.error,referralSettingsResult.error].filter(Boolean);
  return <section className="content-section"><div className="container">
   <div className="section-kicker">MFA SUPER ADMIN · AAL2</div><h1 style={{fontSize:42}}>Agent Trust, Capital & Commission</h1>
   <p className="form-note">This control center manages agent trust, declared capital, documentary guarantees, tracking-only transaction states and commission calculations. It cannot receive, hold, release or transfer customer funds.</p>
   <p><Link className="text-link" href="/admin">← Back to Admin Workspace</Link> · <Link className="text-link" href="/admin/agent-supply">Review Agent CFG Supply →</Link></p>
   {errors.length>0&&<p className="form-note">Some data tables could not be read. Confirm all MFA migrations are applied and inspect RLS policies. Workspace sections may be incomplete.</p>}
+  <ReferralCommissionSettings initial={referralSettingsResult.data??null}/>
   <AgentTrustCapitalWorkspace agents={agentsResult.data??[]} badges={badgesResult.data??[]} trustHistory={trustHistoryResult.data??[]} statusHistory={statusHistoryResult.data??[]} exposures={exposuresResult.data??[]} capital={capitalResult.data??[]} guarantees={guaranteesResult.data??[]} tiers={tiersResult.data??[]} transactions={transactionsResult.data??[]} disputes={disputesResult.data??[]} rules={rulesResult.data??[]} entries={entriesResult.data??[]} countries={countriesResult.data??[]} partners={partnersResult.data??[]} escrows={escrowsResult.data??[]} audit={auditResult.data??[]}/>
  </div></section>;
 }
