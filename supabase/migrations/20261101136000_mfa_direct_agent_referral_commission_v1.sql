@@ -33,9 +33,16 @@ create index if not exists agent_profiles_referred_by_idx
 create or replace function private.mfa_guard_agent_referral_attribution()
 returns trigger language plpgsql set search_path = '' as $$
 begin
-  if new.referral_code is distinct from old.referral_code
-    or new.referred_by_agent_id is distinct from old.referred_by_agent_id then
-    raise exception 'Agent referral code and inviter attribution are immutable' using errcode = '42501';
+  if new.referral_code is distinct from old.referral_code then
+    raise exception 'Agent referral code is immutable' using errcode = '42501';
+  end if;
+  if new.referred_by_agent_id is distinct from old.referred_by_agent_id then
+    if old.referred_by_agent_id is null and new.referred_by_agent_id is not null
+      and pg_trigger_depth() > 1 then
+      null; -- one-time assignment by the trusted auth-user referral capture trigger
+    else
+      raise exception 'Agent inviter attribution is immutable' using errcode = '42501';
+    end if;
   end if;
   if old.referral_activated_at is not null and new.referral_activated_at is distinct from old.referral_activated_at then
     raise exception 'Referral activation date is immutable' using errcode = '42501';
