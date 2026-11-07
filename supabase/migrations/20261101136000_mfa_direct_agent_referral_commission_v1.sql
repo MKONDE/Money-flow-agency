@@ -118,6 +118,7 @@ begin
   set referral_activated_at = now(),
       referral_duration_months = coalesce(v_duration_months, 12)
   where a.id = v_agent_id
+    and a.referred_by_agent_id is not null
     and a.referral_activated_at is null
     and a.status = 'verified'
     and exists (
