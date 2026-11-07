@@ -132,14 +132,14 @@ New module migrations are timestamped after the existing agent verification migr
 4. 20261101132000_mfa_agent_trust_capital_commission_workflows.sql
 5. 20261101133000_mfa_public_directory_online_presence.sql
 6. 20261101134000_mfa_legacy_demo_request_security_hardening.sql
-7. 20261101135000_mfa_agent_cfg_supply_activation_gate.sql
+7. 20261101135000_mfa_agent_cfg_supply_activation_gate.sql\n8. 20261101136000_mfa_direct_agent_referral_commission_v1.sql
 
 Before applying them to the live MFA project, reconcile the three missing operational migration files, the two RLS migration version mismatches and the base foundation version mismatch and the unapplied agent-verification migration identified in the repository audit. Validate the actual live schema.
 
 ## Current status
 
 - Code and SQL migration drafts are committed to feature/agent-trust-capital-commission-v1.
-- Minimum USD 50 equivalent CFG Supply activation gate, agent submission form and AAL2 Admin review page have been added to the feature branch.
+- Minimum USD 50 equivalent CFG Supply activation gate, agent submission form and AAL2 Admin review page have been added to the feature branch.\n- Direct-agent referral links, immutable signup attribution, 10% of company-share referral calculations for 12 months from operational activation, agent referral history and AAL2 Admin rule controls have been added to the feature branch.\n- Referral calculations remain non-payable; no payout or payment execution is enabled.
 - No migrations were applied to the live Supabase project.
 - No real funds, escrow, payment, withdrawal, custody or transfer functionality was activated.
 - No changes were made to CFG or any other project.
