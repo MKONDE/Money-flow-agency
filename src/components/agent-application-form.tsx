@@ -17,6 +17,7 @@ export function AgentApplicationForm() {
     try{
       const supabase=createClient();
       const origin=window.location.origin;
+      const referralCode=(new URLSearchParams(window.location.search).get("ref")??"").trim().toUpperCase();
       const {error:authError}=await supabase.auth.signUp({
         email:String(form.get("email")),
         password:String(form.get("password")),
@@ -24,7 +25,7 @@ export function AgentApplicationForm() {
           account_type:"agent",agent_type:String(form.get("agent_type")),brand_name:String(form.get("brand_name")),
           full_name:String(form.get("full_name")),description:String(form.get("description")),country_code:String(form.get("country_code")),
           region:String(form.get("region")),city:String(form.get("city")),service_address:String(form.get("service_address")),
-          phone:String(form.get("phone")),website:String(form.get("website")),languages:selected("languages"),services:selected("services"),payment_networks:selected("payment_networks")
+          phone:String(form.get("phone")),website:String(form.get("website")),languages:selected("languages"),services:selected("services"),payment_networks:selected("payment_networks"),referral_code:referralCode
         }}
       });
       if(authError)throw authError;
