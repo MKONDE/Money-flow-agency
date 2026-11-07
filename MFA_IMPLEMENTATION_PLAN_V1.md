@@ -30,6 +30,13 @@
 - [ ] Service/language/network filters beyond name/country/city.
 
 ### 2. Agent Verification and Trust
+- [x] New Agent CFG Supply rule: minimum verified USD 50 equivalent is required for operational ACTIVE status.
+- [x] Agent submits an external CFG Supply reference and claimed USD-equivalent amount.
+- [x] AAL2 Super Admin verifies/rejects/suspends supply; verified amount below USD 50 is rejected by database constraints.
+- [x] Agent operational status view distinguishes pending verification, pending supply, rejected, suspended and active.
+- [x] Transaction assignment is blocked unless the agent is verified and has a verified minimum CFG Supply.
+- [x] Append-only CFG Supply verification history and Admin review workspace.
+- [ ] Live CFG source/API verification and automatic balance-change synchronization; manual external verification is used until an approved secure integration exists.
 - [x] Reuse existing Super Admin AAL2 verification workflow.
 - [x] Add Independent, Verified, Capital-Backed, Premium and Strategic trust levels.
 - [x] Admin badge activation, suspension and revocation.
@@ -125,12 +132,14 @@ New module migrations are timestamped after the existing agent verification migr
 4. 20261101132000_mfa_agent_trust_capital_commission_workflows.sql
 5. 20261101133000_mfa_public_directory_online_presence.sql
 6. 20261101134000_mfa_legacy_demo_request_security_hardening.sql
+7. 20261101135000_mfa_agent_cfg_supply_activation_gate.sql
 
 Before applying them to the live MFA project, reconcile the three missing operational migration files, the two RLS migration version mismatches and the base foundation version mismatch and the unapplied agent-verification migration identified in the repository audit. Validate the actual live schema.
 
 ## Current status
 
 - Code and SQL migration drafts are committed to feature/agent-trust-capital-commission-v1.
+- Minimum USD 50 equivalent CFG Supply activation gate, agent submission form and AAL2 Admin review page have been added to the feature branch.
 - No migrations were applied to the live Supabase project.
 - No real funds, escrow, payment, withdrawal, custody or transfer functionality was activated.
 - No changes were made to CFG or any other project.
