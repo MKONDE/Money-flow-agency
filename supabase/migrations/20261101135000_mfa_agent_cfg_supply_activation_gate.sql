@@ -235,7 +235,6 @@ with (security_invoker = true)
 as
 select
   a.id as agent_id,
-  a.user_id,
   a.status as verification_status,
   coalesce(s.verification_status, 'not_submitted') as supply_status,
   s.claimed_supply_usd,
@@ -243,6 +242,7 @@ select
   s.last_checked_at,
   case
     when a.status = 'suspended' then 'suspended'
+    when a.status = 'rejected' then 'rejected'
     when a.status <> 'verified' then 'pending_verification'
     when s.verification_status = 'suspended' then 'suspended'
     when s.verification_status = 'rejected' then 'supply_rejected'
