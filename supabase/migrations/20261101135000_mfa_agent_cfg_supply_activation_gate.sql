@@ -51,16 +51,6 @@ create policy mfa_cfg_supply_admin_read on public.mfa_agent_cfg_supply
 for select to authenticated
 using ((select private.current_mfa_role()) = 'super_admin'
   and (select auth.jwt()->>'aal') = 'aal2');
-create policy mfa_cfg_supply_owner_insert on public.mfa_agent_cfg_supply
-for insert to authenticated
-with check (
-  verification_status = 'pending' and verified_supply_usd is null
-  and verified_by is null and verified_at is null
-  and exists (
-    select 1 from public.agent_profiles a
-    where a.id = agent_id and a.user_id = (select auth.uid())
-  )
-);
 create policy mfa_cfg_supply_admin_update on public.mfa_agent_cfg_supply
 for update to authenticated
 using ((select private.current_mfa_role()) = 'super_admin'
@@ -81,9 +71,7 @@ using ((select private.current_mfa_role()) = 'super_admin'
 
 revoke all on public.mfa_agent_cfg_supply, public.mfa_agent_cfg_supply_history
 from public, anon, authenticated;
-grant select, insert on public.mfa_agent_cfg_supply to authenticated;
-grant update on public.mfa_agent_cfg_supply to authenticated;
-grant select on public.mfa_agent_cfg_supply_history to authenticated;
+grant select on public.mfa_agent_cfg_supply, public.mfa_agent_cfg_supply_history to authenticated;
 
 create or replace function private.mfa_record_cfg_supply_history()
 returns trigger
