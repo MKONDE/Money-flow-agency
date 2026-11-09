@@ -1,132 +1,166 @@
-# MFA Implementation Plan V1
+# MFA Implementation Plan — Agent Trust, Capital & Commission Engine V1
 
-**Project:** Money Flow Agency (MFA)  
-**Specification baseline:** Master Blueprint V1 + Master Blueprint V1.1 Additive Edition + MFA–Cashflow Gate Strategic Integration Blueprint V1  
-**Working branch:** `feature/mfa-foundation-audit-v1`  
-**Base branch:** `main`  
-**Status:** Foundation scaffold committed; validation and remaining modules in progress
+**Project:** Money Flow Agency  
+**Base branch:** main  
+**Working branch:** feature/agent-trust-capital-commission-v1  
+**Baseline:** MFA Master Blueprint V1 + additive V1.1  
+**Date:** 2026-11-01
 
-## 1. Guiding rules
+## Non-negotiable boundaries
 
-- Preserve original Master Blueprint V1. V1.1 features are additive.
-- MFA is an independent multi-partner platform; CFG is only one partner.
-- Keep MFA repository, database, authentication, financial records, credentials and deployment separate from CFG and all other projects.
-- Never write to CFG/CFGG wallet balances or ledger.
-- Keep real customer deposits, withdrawals, transfers, wallets, custody, crypto exchange, payment execution and guarantee collection disabled.
-- Do not invent unapproved fees, commission rates, advertising prices or transaction limits.
-- Use migrations for database changes; preserve existing data and files.
-- Work only on `feature/mfa-foundation-audit-v1`. No direct commits to `main`, no merge and no production deployment.
+- MFA is an independent multi-partner platform. CFG is one partner only.
+- Never connect to CFG/CFGG databases, wallets, balances or ledgers.
+- Do not create an MFA token, coin, customer wallet or stored-value balance.
+- Do not hold customer funds or accept real deposits.
+- Do not activate real payment execution, withdrawal, transfer, escrow holding or escrow release.
+- Preserve existing architecture and data. All work is additive.
+- Work only on feature branches. No direct main commits, merge or production deployment without owner approval.
+- Never expose or commit .env files or secrets.
 
-## 2. Approved technical stack
+## V1 module delivery
 
-- Next.js App Router 16 + TypeScript.
-- Supabase PostgreSQL and Auth.
-- `@supabase/ssr` cookie-based sessions for Next.js.
-- Vercel preview hosting, to be configured only after owner review.
-- Dedicated Supabase project and credentials for MFA only.
+### 1. Global Agent Network
+- [x] Existing registration and agent profile reused.
+- [x] Capture supported payment networks at application.
+- [x] Search public verified directory by business name, country and city.
+- [x] Online/offline presence synced to public directory.
+- [x] Public phone/email shown only after explicit agent consent.
+- [x] Agent HTTPS logo URL editing and public directory display.
+- [ ] Agent logo/profile image file upload via a dedicated validated Storage bucket.
+- [ ] Service/language/network filters beyond name/country/city.
 
-## 3. Delivery phases and progress
+### 2. Agent Verification and Trust
+- [x] New Agent CFG Supply rule: minimum verified USD 50 equivalent is required for operational ACTIVE status.
+- [x] Agent submits an external CFG Supply reference and claimed USD-equivalent amount.
+- [x] AAL2 Super Admin verifies/rejects/suspends supply; verified amount below USD 50 is rejected by database constraints.
+- [x] Agent operational status view distinguishes pending verification, pending supply, rejected, suspended and active.
+- [x] Transaction assignment is blocked unless the agent is verified and has a verified minimum CFG Supply.
+- [x] Append-only CFG Supply verification history and Admin review workspace.
+- [ ] Live CFG source/API verification and automatic balance-change synchronization; manual external verification is used until an approved secure integration exists.
+- [x] Reuse existing Super Admin AAL2 verification workflow.
+- [x] Add Independent, Verified, Capital-Backed, Premium and Strategic trust levels.
+- [x] Admin badge activation, suspension and revocation.
+- [x] Capital-Backed eligibility requires declared capital and separately verified in-date guarantee.
+- [x] Append-only trust badge history and audit events.
 
-### Phase 0 — Audit and architecture
-- [x] Confirm repository, permissions and feature branch.
-- [x] Inspect README and common root paths.
-- [x] Commit repository audit and implementation plan.
-- [x] Owner approved Next.js + TypeScript + Supabase + Vercel preview architecture.
-- [ ] Confirm first pilot country and initial services; owner decision required.
+### 3. Agent Capital Guarantee
+- [x] Record declared capital and declared transaction float separately.
+- [x] Record documentary guarantee references separately.
+- [x] Admin verification/rejection of guarantee references.
+- [x] Admin-configurable currency-specific capital tiers.
+- [x] Per-transaction, pending exposure, daily and monthly limits enforced in database triggers.
+- [x] Admin exposure and volume summary view.
+- [ ] Owner to configure approved capital tier amounts before assigning agents.
+- [ ] External documentary evidence upload/storage and manual verification procedure.
 
-### Phase 1 — Secure application foundation
-- [x] Create Next.js App Router/TypeScript scaffold.
-- [x] Add environment variable example with placeholders only.
-- [x] Add Supabase browser/server SSR clients and Next.js proxy session refresh.
-- [x] Add initial database migration.
-- [x] Enable RLS on initial tables.
-- [x] Prevent user self-promotion through profile role column grants.
-- [x] Prevent agents from changing verification state or transaction-enabled flag through user grants.
-- [ ] Provision dedicated MFA Supabase project and apply migration.
-- [ ] Configure email confirmation and administrator MFA.
-- [x] Add Super Admin-only AAL2 agent review RPC, server action and Admin review UI.\n- [ ] Add controlled Super Admin account provisioning procedure.
-- [x] GitHub CI: dependency install, TypeScript typecheck, ESLint and production build passed on current branch head.\n- [ ] Apply and validate all migrations in the dedicated MFA Supabase project; run database security and permission tests.
+### 4. Transaction Tracking
+- [x] Unique transaction reference, customer/agent/partner references, country, currency, payment network, amount and evidence reference.
+- [x] All required statuses and controlled transition graph.
+- [x] Customer tracking-only transaction creation.
+- [x] Agent limited progress actions.
+- [x] Immutable status history.
+- [x] Customer dispute opening and admin resolution workflow.
+- [x] 20 requests/hour per authenticated customer anti-abuse throttle.
+- [ ] Full browser and adversarial RLS testing.
 
-### Phase 2 — Public website
-- [x] Responsive home page.
-- [x] About and Services.
-- [x] Global Agent Directory initial page (verified-only query and empty state).
-- [x] Become an Agent.
-- [x] Business Partners and Advertising.
-- [x] Help and Complaints, Contact.
-- [x] Preliminary Privacy and Terms pages.
-- [ ] Complete accessibility and mobile/browser QA.
-- [ ] Replace preliminary legal copy after qualified review.
+### 5. Escrow-ready Engine
+- [x] Release conditions, future provider code and customer confirmation metadata.
+- [x] Dispute metadata.
+- [x] Database hard stops: funds_held=false and release_executed=false.
+- [ ] Licensed provider integration only after legal/owner approval.
+- [ ] No actual escrow or automatic release in V1.
 
-### Phase 3 — Agent onboarding and directory
-- [x] Individual/business application form.
-- [x] Account sign-up and email-confirmation callback.
-- [x] Database trigger creates pending agent application from signup metadata.
-- [x] Public directory query exposes verified profiles only.
-- [ ] Logo/profile image upload with storage bucket policies and validation.
-- [ ] Directory filters: country, region/city, service, payment network, language and online status.
-- [ ] Profile editing and application status timeline.
+### 6. Agent Commission Engine
+- [x] Default 70% agent / 20% MFA company / 10% operations-risk reserve.
+- [x] Global/country/service/agent/partner scoped rules.
+- [x] Currency-specific rules, effective dates, minimum and maximum commission pool.
+- [x] Commission only on completed records assigned to verified agents.
+- [x] Historical rule snapshot stored per calculation.
+- [x] Immutable non-payable commission entries.
+- [ ] Commission reversal/adjustment accounting for post-completion disputes is not implemented; all V1 entries remain non-payable.
 
-### Phase 4 — Verification, branding and portals
-- [x] Agent Portal protected server route foundation.
-- [x] Super Admin route protected by role and AAL2 check.
-- [x] Initial dashboard counts.
-- [x] Verification event table.
-- [x] Admin approve/reject/suspend/request-information workflow (RPC, server action, UI; migration pending live application).
-- [x] Capture decision reasons, internal evidence references, verification events and audit-log entries in the review RPC.\n- [ ] Evidence file storage and complete audit review UI.
-- [ ] Trust Badge UI and profile branding.
-- [ ] Agent requests, transaction references, commission statements, support and security settings.
-- [ ] Country/Regional Manager scoped permissions and tests.
+### 7. MFA Revenue Engine
+- [x] Company, agent and reserve calculation reports.
+- [x] Currency, country and partner reporting.
+- [x] Revenue summary and agent exposure views.
+- [ ] Financial reconciliation against any future licensed provider is out of V1 scope.
 
-### Phase 5 — Additive V1.1 modules
-1. [ ] Agent Network & Listing completion.
-2. [ ] Agent Branding & Advertising approval workflow and publication schedule.
-3. [ ] Fee & Commission Engine with configurable versioned rules and idempotency.
-4. [ ] Multi-partner profiles, contract approval, scoped credentials, usage limits and API logs.
-5. [ ] Support & Complaints workflow with New, Assigned, In Progress, Resolved and Closed states.
-6. [ ] Escrow & Agent Guarantee Engine in sandbox/test mode only, with separate agent statements, available/reserved/disputed/released classifications, reconciliation, limits and dispute/refund workflows.
+### 8. Admin Control Center
+- [x] Agent trust and badge management.
+- [x] Capital/guarantee review and capital tier configuration.
+- [x] Transaction monitoring and assignment.
+- [x] Commission configuration.
+- [x] Country/currency configuration.
+- [x] Partner status management.
+- [x] Dispute management.
+- [x] Escrow-ready metadata.
+- [x] Audit history.
+- [ ] Country/regional manager scoped roles remain disabled.
 
-### Phase 6 — Partner API and CFG readiness
-- [ ] Define partner-agnostic API contracts.
-- [ ] Partner authentication, scopes, signature verification, rate limits, idempotency and logs.
-- [ ] Transaction references and status responses only.
-- [ ] CFG remains source of truth for its business, wallet, balances, ledger and payment confirmation.
-- [ ] No direct MFA-to-CFG database or ledger access.
-- [ ] Sandbox tests for unauthorized access, duplicate webhook, timeout, reversal, refund and dispute.
+### 9. Security
+- [x] RLS on new module tables.
+- [x] AAL2 Super Admin write policies.
+- [x] Agent/customer/partner data access policies.
+- [x] Database input constraints and guarded status transitions.
+- [x] Private trigger functions and immutable history/ledger.
+- [x] Rate limit for customer tracking record creation.
+- [x] Legacy demo service request SECURITY INVOKER/RLS hardening migration.
+- [ ] Enable leaked password protection in Supabase Auth.
+- [ ] Complete security advisor recheck after staging migrations.
+- [ ] Secret scan, dependency advisory triage and adversarial access tests.
 
-### Phase 7 — Security, quality and handover
-- [ ] Role permissions and partner data-isolation tests.
-- [ ] Agent verification lifecycle and Trust Badge tests.
-- [ ] Upload/input validation and rate-limit tests.
-- [ ] Idempotency and rule-version history tests.
-- [ ] Secret scanning.\n- [ ] Triage 16 moderate dependency vulnerabilities reported during `npm install`; review advisories before applying upgrades.
-- [ ] Backup/restore plan and restore test.
-- [ ] Run automated tests, lint/typecheck and build.
-- [ ] Publish remaining-work, security and test reports.
-- [ ] Review preview only; no production deployment or merge.
+### 10. Testing and handover
+- [x] Repository audit report.
+- [x] Database migrations.
+- [x] Frontend and backend trigger/RLS implementation.
+- [x] Security report.
+- [x] SQL schema smoke-test script.
+- [x] Test report with unrun tests clearly identified.
+- [x] Backup/recovery runbook.
+- [ ] GitHub Actions typecheck/lint/build must pass on final branch head.
+- [ ] Apply migrations and run database smoke test on isolated staging.
+- [ ] Browser/mobile, concurrency and RLS adversarial tests.
+- [ ] Backup/PITR configuration and restore drill.
+- [ ] Pull request review and owner approval.
 
-## 4. Guarantee and bank-account controls
+## Migration order
 
-Preferred arrangement is an approved third-party bank/escrow structure. A separate designated MFA bank account may be evaluated only if escrow is unavailable and the bank and legal adviser approve it. It must not be an ordinary operating account. Deposits must remain segregated, not fund normal expenses and not be mixed with CFG/CFGG or another partner's funds.
+New module migrations are timestamped after the existing agent verification migration:
+1. 20261101130000_mfa_agent_trust_capital_commission_tables.sql
+2. 20261101131000_mfa_agent_trust_capital_commission_rls.sql
+3. 20261101131500_mfa_partner_admin_aal2.sql
+4. 20261101132000_mfa_agent_trust_capital_commission_workflows.sql
+5. 20261101133000_mfa_public_directory_online_presence.sql
+6. 20261101134000_mfa_legacy_demo_request_security_hardening.sql
+7. 20261101135000_mfa_agent_cfg_supply_activation_gate.sql\n8. 20261101136000_mfa_direct_agent_referral_commission_v1.sql
 
-Until legal and banking approval is documented, keep guarantee functions in sandbox, publish no real deposit instructions, accept no real deposits and grant no transaction permissions requiring a guarantee. Screenshots alone are not final proof of deposit.
+Before applying them to the live MFA project, reconcile the three missing operational migration files, the two RLS migration version mismatches and the base foundation version mismatch and the unapplied agent-verification migration identified in the repository audit. Validate the actual live schema.
 
-## 5. Decisions requiring owner confirmation
+## Current status
 
-- First registration/operating countries and pilot regions.
-- Initial services to be offered.
-- Final company name/domain after legal and trademark checks.
-- Approved payment providers and agreements.
-- Fees, commissions, advertising prices and transaction limits.
-- Banking/legal structure for agent guarantees.
-- Final hosting and production deployment arrangements.
+- Code and SQL migration drafts are committed to feature/agent-trust-capital-commission-v1.
+- Minimum USD 50 equivalent CFG Supply activation gate, agent submission form and AAL2 Admin review page have been added to the feature branch.\n- Direct-agent referral links, immutable signup attribution, 10% of company-share referral calculations for 12 months from operational activation, agent referral history and AAL2 Admin rule controls have been added to the feature branch.\n- Referral calculations remain non-payable; no payout or payment execution is enabled.
+- No migrations were applied to the live Supabase project.
+- No real funds, escrow, payment, withdrawal, custody or transfer functionality was activated.
+- No changes were made to CFG or any other project.
+- CI was running at the time of this report; final status must be confirmed from the latest GitHub Actions run.
+- No merge to main or production deployment has been performed.
 
-## 6. Current implementation status
 
-- Audit and plan: committed.
-- Next.js + Supabase foundation: committed.
-- Public pages and initial agent application: committed.
-- Initial database migration and RLS: committed, not yet applied to a live Supabase project.
-- Agent/Admin portal shells and Super Admin verification workflow: committed; app typecheck/lint/build passed; live Supabase migration and authenticated runtime validation pending.
-- CI: successful on current branch head (run `41294653176`); dependency install, typecheck, lint and production build passed.
-- Production deployment and merge: not performed.
+## 11. CFG first-partner channel readiness — additive V1 gate
+
+- [x] Document CFG as the first planned assisted-payment partner channel; MFA remains independent and multi-partner.
+- [x] Define role boundaries: MFA owns agent onboarding/verification and tracking; CFG alone owns payment intent, settlement verification, CFG ledger and customer balance.
+- [x] Define future signed partner API/webhook requirements and prohibited shared-database/credential patterns.
+- [ ] Reconcile existing live MFA schema/migration drift in an isolated staging copy; preserve all existing data and migration history.
+- [ ] Apply reviewed migrations only to isolated staging and run the read-only schema smoke test.
+- [ ] Run adversarial RLS tests for anonymous, customer, agent, partner and AAL2 Super Admin roles.
+- [ ] Enable Supabase leaked-password protection and re-run security advisor review.
+- [ ] Run concurrency/agent exposure, transaction-state, dispute and immutable-history tests.
+- [ ] Configure staging backups/PITR and complete a restore drill.
+- [ ] Complete desktop/mobile browser QA and dependency/secret review.
+- [ ] Agree the CFG↔MFA API contract and run signed-event, replay, duplicate, out-of-order, expiry, reversal and dispute contract tests.
+- [ ] Run end-to-end sandbox payment simulation; CFG settlement verification remains authoritative.
+- [ ] Complete country-specific legal, privacy, AML/KYC, consumer-protection and agent-agreement review before any live pilot.
+
+**Release hold:** These are staging and sandbox gates only. No live payment execution, customer deposit/withdrawal, custody, escrow, commission payout, production deployment or merge is authorized by this checklist. The existing tracking-only constraints remain mandatory until separate approval and a reviewed implementation phase.
