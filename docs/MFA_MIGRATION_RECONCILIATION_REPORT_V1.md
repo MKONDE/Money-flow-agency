@@ -186,3 +186,35 @@ The information-schema grant inventory shows anon and/or authenticated table pri
 **MFA remains NOT READY for production.** Before any production release, the project still needs: migration-source recovery and object-level reconciliation; RPC privilege/security review; leaked-password protection enabled; least-privilege grants review; adversarial RLS tests; trigger/view/storage review; staging smoke tests; and browser/mobile verification.
 
 This additional inspection was read-only. No schema, data, Auth configuration, migration history, payment flow, or deployment state was changed.
+
+## 9. Grant inventory detail — follow-up finding (2026-11-09)
+
+A grouped read-only query against `information_schema.role_table_grants` identified the following privilege footprint across the 19 public application tables:
+
+| Role | Privilege | Number of tables |
+|---|---|---:|
+| anon | SELECT | 12 |
+| anon | INSERT | 14 |
+| anon | UPDATE | 14 |
+| anon | DELETE | 14 |
+| anon | TRUNCATE | 14 |
+| anon | REFERENCES | 14 |
+| anon | TRIGGER | 14 |
+| authenticated | SELECT | 17 |
+| authenticated | INSERT | 19 |
+| authenticated | UPDATE | 17 |
+| authenticated | DELETE | 19 |
+| authenticated | TRUNCATE | 19 |
+| authenticated | REFERENCES | 19 |
+| authenticated | TRIGGER | 19 |
+| service_role | SELECT/INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER | 19 each |
+
+This is a **high-priority least-privilege review item**. RLS does not replace table-level grants: RLS filters rows for applicable roles, while grants determine which SQL operations a role may attempt. In particular, broad INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER grants to `anon` and `authenticated` should not be accepted without an explicit, table-by-table justification. This inventory alone does not prove that unauthorized data can be changed, because RLS policies, function paths, ownership, and execution context also matter. It does establish that the grant surface is broader than a minimal public-client design would normally require.
+
+**Required next action:** create a least-privilege matrix for every public table and each API role; validate expected public reads, authenticated owner operations, admin-only actions, and service-role backend access. Then test the matrix using real anon/authenticated role contexts on isolated staging. Any grant revocation or policy change must be proposed separately, reviewed against application behavior, and explicitly authorized. No grants were changed during this audit.
+
+## 10. Catalog inventory totals and limitations
+
+The read-only catalog returned **57 public-schema indexes, 85 constraints (including 28 foreign keys)**, and no ordinary views in `pg_views`. This does not rule out materialized views or objects in non-public schemas; those were not exhaustively certified in this pass. The public table column inventory was retrieved, but the full column-by-column output is intentionally not duplicated in this report.
+
+No table data was selected. No schema, grants, policies, functions, triggers, Auth settings, migration history, or deployment state was changed.
