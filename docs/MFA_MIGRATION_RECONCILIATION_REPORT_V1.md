@@ -218,3 +218,56 @@ This is a **high-priority least-privilege review item**. RLS does not replace ta
 The read-only catalog returned **57 public-schema indexes, 85 constraints (including 28 foreign keys)**, and no ordinary views in `pg_views`. This does not rule out materialized views or objects in non-public schemas; those were not exhaustively certified in this pass. The public table column inventory was retrieved, but the full column-by-column output is intentionally not duplicated in this report.
 
 No table data was selected. No schema, grants, policies, functions, triggers, Auth settings, migration history, or deployment state was changed.
+
+
+## 11. Table-by-table grants, policy and role review — follow-up (2026-11-09)
+
+### A. Direct public-directory exposure is narrowly scoped by its current columns
+
+The live `public_agent_directory` object is a table with these columns: `id`, `brand_name`, `description`, `country_code`, `region`, `city`, `services`, `languages`, `logo_url`, and `synced_at`. Its RLS policy is a public SELECT policy with `USING (true)`, and anon/authenticated have SELECT grants. The currently observed column set does not include phone, email, or street address. This is consistent with a limited public directory projection, but the source/synchronization function and future schema changes must preserve this data-minimization boundary. This review did not query directory row data.
+
+### B. High-priority grant concern: RLS is not a substitute for TRUNCATE/DDL privilege control
+
+The per-table grant inventory confirms that `anon` has broad DML/utility privileges on many public tables, including `TRUNCATE`, `REFERENCES`, and `TRIGGER`; `authenticated` also has these broad privileges on nearly all public tables. RLS policies do not filter TRUNCATE operations. The current inventory therefore represents a serious least-privilege concern even though missing INSERT/UPDATE/DELETE policies may block ordinary row-level writes through RLS. Do not assume RLS neutralizes the TRUNCATE grant.
+
+Some tables are narrower than others: for example, `profiles`, `agent_profiles`, `partner_confirmations`, `receipt_records`, and `service_request_events` did not show anon table grants in the inspected role-table-grants output. `country_offices` and `country_representatives` showed no anon/authenticated SELECT grants, despite public-read policies in the catalog; this is a grant/policy mismatch to reconcile against the intended API behavior. No privileges were changed.
+
+### C. Default privileges also need remediation planning
+
+The catalog shows public-schema default ACL entries that include `anon`, `authenticated`, and `service_role` for future tables, sequences, and functions. The reported ACL strings include broad table privileges, sequence read/write privileges, and function EXECUTE privileges. Two ACL entries per object type appeared with different grantors. This suggests future objects created by the affected owners may inherit overly broad API-role permissions. The exact grantor/owner/default-privilege provenance should be traced before a corrective migration is designed.
+
+### D. Role attributes
+
+The inspected role attributes show:
+- `anon`: not superuser, no BYPASSRLS.
+- `authenticated`: not superuser, no BYPASSRLS.
+- `service_role`: BYPASSRLS = true (expected for a privileged backend role; its key must never be exposed to clients).
+- `postgres`: BYPASSRLS = true and elevated database-owner capabilities.
+
+This is consistent with the expected separation between public client roles and privileged backend roles. It does not reduce the need to tighten grants on anon/authenticated.
+
+### E. Policy expression review — positive patterns and test requirements
+
+The policy catalog includes several sound patterns: owner checks against `auth.uid()`; paired UPDATE `USING` and `WITH CHECK` expressions on key profile/listing/location records; participant checks for service requests, receipts, confirmations, disputes, and request events; and AAL2 plus super-admin checks for sensitive global-presence administration.
+
+However, this was static catalog inspection only. It does not prove that referenced helper functions (such as `private.current_mfa_role()`) are correctly secured, that no cross-table policy recursion or unexpected grants exist, or that every write path is safe. Specific staging tests must include:
+- anonymous attempts to read private profile/application, audit, partner, receipt, dispute, and request data;
+- authenticated user A attempting to read or mutate user B's records;
+- unverified agent attempts to submit/publish listings or update assigned requests;
+- verified agent attempting to alter another agent's request or event;
+- non-admin and AAL1 admin attempts to perform admin actions;
+- direct SQL/API attempts against all public write endpoints, including TRUNCATE privilege behavior;
+- attempts to alter owner identifiers, status fields, verification fields, review fields, and assignment fields during UPDATE/INSERT.
+
+### F. Performance Advisor — do not remove indexes based only on this signal
+
+The Performance Advisor reported 14 indexes as currently unused and 12 instances of multiple permissive RLS policies. Unused-index warnings may reflect a new or lightly used database; index removal requires workload evidence and query-plan review. Multiple permissive policies can be a performance optimization target, but they are not automatically a security vulnerability because permissive policies combine with OR semantics. Consolidation must preserve exact authorization semantics and be tested on staging.
+
+### G. Updated severity
+
+- **Critical / high-priority security remediation:** broad anon/authenticated grants, especially TRUNCATE and broad default privileges.
+- **High-priority security review:** two callable SECURITY DEFINER RPCs; leaked-password protection disabled.
+- **High-priority verification:** policy/grant mismatches for public country-office and representative reads; role-based RLS tests.
+- **Performance follow-up:** multiple permissive policies and 14 unused-index advisories; no changes until workload and semantic validation.
+
+No live grants, default privileges, policies, functions, indexes, Auth settings, data, or migration history were changed in this follow-up.
