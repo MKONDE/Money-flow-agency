@@ -113,3 +113,76 @@ The existing security report notes operational tables and migration-history diff
 **RECONCILIATION: INCOMPLETE — BLOCKED ON RECOVERY AND SQL EQUIVALENCE REVIEW.**
 
 The next safe task is to recover the original missing migration SQL and perform a read-only object-level comparison. Do not proceed to live migration execution until that work is complete and separately approved.
+
+## 7. Read-only live schema and security catalog inspection (2026-11-09)
+
+A further read-only catalog inspection was performed against the live MFA project. The queries inspected relation metadata, public-schema RLS/policy counts, selected RPC definitions and ACLs, public triggers, table grants, and Supabase Security Advisor findings. No DDL or DML was run.
+
+### A. Public application tables and RLS
+
+The live catalog returned **19 public application tables**. RLS is enabled on all 19. RLS is not forced on these tables. The live catalog reported these policy counts:
+
+| Table | RLS | Policies |
+|---|---:|---:|
+| agent_location_profiles | enabled | 4 |
+| agent_profiles | enabled | 2 |
+| agent_service_listings | enabled | 4 |
+| agent_verification_events | enabled | 2 |
+| audit_logs | enabled | 1 |
+| business_partners | enabled | 1 |
+| country_offices | enabled | 4 |
+| country_representatives | enabled | 4 |
+| global_presence_audit_log | enabled | 2 |
+| partner_confirmations | enabled | 2 |
+| partner_services | enabled | 2 |
+| payment_partners | enabled | 2 |
+| profiles | enabled | 2 |
+| public_agent_directory | enabled | 1 |
+| receipt_records | enabled | 2 |
+| service_disputes | enabled | 3 |
+| service_request_events | enabled | 4 |
+| service_requests | enabled | 3 |
+| support_tickets | enabled | 3 |
+
+This is a positive baseline, not proof that the policies are correct. Policy expressions and negative/cross-user access cases still require adversarial role-based testing. RLS not being forced also means table-owner/service contexts need separate review; do not infer a vulnerability solely from relforcerowsecurity = false.
+
+### B. Security Advisor findings — release blockers
+
+The live Supabase Security Advisor returned three warning instances across two finding categories:
+
+1. **public.agent_update_service_request(uuid, text, text) — authenticated SECURITY DEFINER RPC.** It is callable by authenticated. Its current definition uses SECURITY DEFINER, an empty search_path, checks that the caller has a verified agent profile, locks the assigned demo request, validates allowed status transitions, and writes a service-request event. These checks are useful, but the advisor correctly flags the privileged callable surface. Compare the live definition to the branch's intended SECURITY INVOKER hardening migration; do not change the live function during this audit.
+2. **public.mfa_review_agent_application(uuid, text, text, text) — authenticated SECURITY DEFINER RPC.** It is callable by authenticated. Its current definition explicitly checks auth.uid(), requires JWT AAL2, checks profiles.role = super_admin, validates review actions and reasons, locks the application row, updates status with transaction_enabled = false, and writes a verification event. Despite those internal checks, the advisor flags the callable SECURITY DEFINER function. Review whether this privileged RPC should remain SECURITY DEFINER, be moved to a non-exposed schema, or be replaced with an appropriately secured invoker design. Any change requires SQL review and separate authorization.
+3. **Supabase Auth leaked-password protection is disabled.** Enablement is a production security prerequisite, but this report did not change Auth settings.
+
+Advisor remediation references:
+- [Authenticated SECURITY DEFINER function executable](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable)
+- [Leaked password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)
+
+### C. Public triggers
+
+The catalog returned seven trigger event rows across six trigger names:
+- agent_location_profiles_updated_at — BEFORE UPDATE
+- agent_profiles_set_updated_at — BEFORE UPDATE
+- sync_public_agent_directory_trigger — AFTER INSERT and AFTER UPDATE on agent_profiles
+- country_offices_updated_at — BEFORE UPDATE
+- country_representatives_updated_at — BEFORE UPDATE
+- profiles_set_updated_at — BEFORE UPDATE
+
+Trigger function bodies and their execution privileges were not fully audited in this pass. The public-directory synchronization trigger should be included in the privacy/data-minimization review.
+
+### D. Grants require a table-by-table review
+
+The information-schema grant inventory shows anon and/or authenticated table privileges on several public tables, including broad privilege sets on some tables. RLS policies are therefore an essential row-level boundary, but grants and policies must be evaluated together. Some tables have no SELECT grant for anon; others have multiple DML privileges listed. Before production, prepare an explicit least-privilege matrix for anon, authenticated, and service_role, then compare each grant with its intended API exposure and RLS policy. Do not revoke grants blindly as part of this report.
+
+### E. Interpretation
+
+- Positive: all 19 public application tables in the catalog inventory had RLS enabled.
+- Not yet certified: policy correctness, table-level least privilege, trigger safety, view/materialized-view security, storage bucket policies, and cross-user isolation.
+- Confirmed security warnings: two authenticated-callable SECURITY DEFINER RPCs and leaked-password protection disabled.
+- The migration-source gap remains unresolved. Live catalog state must not be used as a substitute for recovering the original migration SQL.
+
+## 8. Updated release gate
+
+**MFA remains NOT READY for production.** Before any production release, the project still needs: migration-source recovery and object-level reconciliation; RPC privilege/security review; leaked-password protection enabled; least-privilege grants review; adversarial RLS tests; trigger/view/storage review; staging smoke tests; and browser/mobile verification.
+
+This additional inspection was read-only. No schema, data, Auth configuration, migration history, payment flow, or deployment state was changed.
