@@ -145,3 +145,22 @@ Before applying them to the live MFA project, reconcile the three missing operat
 - No changes were made to CFG or any other project.
 - CI was running at the time of this report; final status must be confirmed from the latest GitHub Actions run.
 - No merge to main or production deployment has been performed.
+
+
+## 11. CFG first-partner channel readiness — additive V1 gate
+
+- [x] Document CFG as the first planned assisted-payment partner channel; MFA remains independent and multi-partner.
+- [x] Define role boundaries: MFA owns agent onboarding/verification and tracking; CFG alone owns payment intent, settlement verification, CFG ledger and customer balance.
+- [x] Define future signed partner API/webhook requirements and prohibited shared-database/credential patterns.
+- [ ] Reconcile existing live MFA schema/migration drift in an isolated staging copy; preserve all existing data and migration history.
+- [ ] Apply reviewed migrations only to isolated staging and run the read-only schema smoke test.
+- [ ] Run adversarial RLS tests for anonymous, customer, agent, partner and AAL2 Super Admin roles.
+- [ ] Enable Supabase leaked-password protection and re-run security advisor review.
+- [ ] Run concurrency/agent exposure, transaction-state, dispute and immutable-history tests.
+- [ ] Configure staging backups/PITR and complete a restore drill.
+- [ ] Complete desktop/mobile browser QA and dependency/secret review.
+- [ ] Agree the CFG↔MFA API contract and run signed-event, replay, duplicate, out-of-order, expiry, reversal and dispute contract tests.
+- [ ] Run end-to-end sandbox payment simulation; CFG settlement verification remains authoritative.
+- [ ] Complete country-specific legal, privacy, AML/KYC, consumer-protection and agent-agreement review before any live pilot.
+
+**Release hold:** These are staging and sandbox gates only. No live payment execution, customer deposit/withdrawal, custody, escrow, commission payout, production deployment or merge is authorized by this checklist. The existing tracking-only constraints remain mandatory until separate approval and a reviewed implementation phase.
